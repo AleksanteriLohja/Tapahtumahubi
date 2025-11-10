@@ -1,0 +1,20 @@
+name: Feature request
+description: Ehdota ominaisuutta
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Tarve
+      description: Mikä ongelma tai tarve tällä ratkeaa?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Ratkaisuehdotus
+      description: Kuvaile toivottu toiminta
+  - type: textarea
+    id: notes
+    attributes:
+      label: Lisätiedot

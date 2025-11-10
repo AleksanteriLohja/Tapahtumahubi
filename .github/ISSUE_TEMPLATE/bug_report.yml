@@ -1,0 +1,25 @@
+name: Bug report
+description: Ilmoita virheestä
+labels: [bug]
+body:
+  - type: textarea
+    id: desc
+    attributes:
+      label: Kuvaus
+      description: Mitä odotit tapahtuvan ja mitä tapahtui?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Toistovaiheet
+      description: Vaiheet virheen toistamiseen
+      placeholder: |
+        1. Avaa sovellus...
+        2. Klikkaa ...
+        3. Odotettu tulos / toteutunut tulos
+  - type: input
+    id: version
+    attributes:
+      label: Versio/ympäristö
+      placeholder: Windows 11, .NET 8.0.x
