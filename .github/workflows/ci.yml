@@ -2,47 +2,52 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-test:
     runs-on: windows-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore Tapahtumahubi.sln
+      # --- Restore (vain kirjastot + testit, EI MAUI-appia) ---
+      - name: Restore Domain
+        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
-      # Rakennetaan kirjastot ja testit (MAUI-sovellusta ei ajeta CI:ssä)
-      - name: Build (Release)
-        run: |
-          dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
-          dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
-          dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
+      - name: Restore Infrastructure
+        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
 
-      - name: Test
-        run: dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx" --collect "XPlat Code Coverage"
+      - name: Restore Tests
+        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
 
-      # TRX + coverage talteen artefakteina
-      - name: Upload test results (TRX)
+      # --- Build ---
+      - name: Build Domain (Release)
+        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
+
+      - name: Build Infrastructure (Release)
+        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
+
+      - name: Build Tests (Release)
+        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
+
+      # --- Test ---
+      - name: Test (xUnit)
+        run: dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      # --- Artifact: testitulokset ---
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-trx
+          name: test-results
           path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
-
-      - name: Upload coverage (cobertura)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-cobertura
-          path: src/Tapahtumahubi.Tests/TestResults/**/coverage.cobertura.xml
