@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Tapahtumahubi.App.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Tapahtumat">
+
+    <VerticalStackLayout Padding="16" Spacing="12">
+
+        <SearchBar x:Name="Search"
+                   Placeholder="Hae nimellä tai paikalla"
+                   TextChanged="OnSearchChanged" />
+
+        <CollectionView x:Name="EventsList"
+                        SelectionMode="None"
+                        ItemsLayout="VerticalList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <!-- Rivi -->
+                    <Frame x:Name="RowRoot" Padding="12" Margin="0,6" HasShadow="True">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" />
+                            <Label Text="{Binding StartTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" />
+                            <Label Text="{Binding Location}" />
+                            <Label Text="{Binding Description}"
+                                   LineBreakMode="TailTruncation" MaxLines="2" />
+
+                            <HorizontalStackLayout Spacing="8">
+                                <Button Text="Muokkaa"
+                                        Clicked="OnEdit"
+                                        CommandParameter="{Binding .}" />
+                                <Button Text="Poista"
+                                        Clicked="OnDelete"
+                                        CommandParameter="{Binding .}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <!-- Rivin napautus -> muokkaus -->
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer
+                                NumberOfTapsRequired="1"
+                                Tapped="OnItemTapped"
+                                CommandParameter="{Binding .}" />
+                        </Frame.GestureRecognizers>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="Uusi tapahtuma" Clicked="OnNewEvent" />
+
+    </VerticalStackLayout>
+</ContentPage>

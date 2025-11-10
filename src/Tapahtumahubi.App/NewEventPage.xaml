@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Tapahtumahubi.App.NewEventPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Uusi / Muokkaa tapahtumaa">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Label x:Name="HeaderLabel"
+                   Text="Uusi tapahtuma"
+                   FontAttributes="Bold"
+                   FontSize="20"/>
+
+            <Entry x:Name="TitleEntry" Placeholder="Otsikko" />
+            <Entry x:Name="LocationEntry" Placeholder="Paikka" />
+            <DatePicker x:Name="DatePicker" />
+            <TimePicker x:Name="TimePicker" />
+            <Editor x:Name="DescEditor" Placeholder="Kuvaus" AutoSize="TextChanges" />
+            <Entry x:Name="MaxEntry" Placeholder="Maks. osallistujat" Keyboard="Numeric" Text="50" />
+
+            <HorizontalStackLayout Spacing="12">
+                <Button Text="Tallenna" Clicked="OnSave" />
+                <Button Text="Peruuta" Clicked="OnCancel" />
+            </HorizontalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
