@@ -53,14 +53,25 @@ public partial class EditEventPage : ContentPage
     {
         if (_model is null) return;
 
+        var validationErrors = new List<string>();
+
         if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            validationErrors.Add("Otsikko on pakollinen");
+        else if (TitleEntry.Text.Length > 200)
+            validationErrors.Add("Otsikon enimmäispituus on 200 merkkiä");
+
+        if (LocationEntry.Text?.Length > 200)
+            validationErrors.Add("Sijainnin enimmäispituus on 200 merkkiä");
+
+        if (!int.TryParse(MaxEntry.Text, out int max) || max < 1)
+            validationErrors.Add("Osallistujien lukumäärän on oltava vähintään 1");
+
+        if (validationErrors.Any())
         {
-            await DisplayAlert("Virhe", "Otsikko on pakollinen.", "OK");
+            await DisplayAlert("Virhe", string.Join("\n", validationErrors), "OK");
             return;
         }
 
-        int max = _model.MaxParticipants;
-        _ = int.TryParse(MaxEntry.Text, out max);
         var start = DatePicker.Date + TimePicker.Time;
 
         using var db = await _dbFactory.CreateDbContextAsync();
@@ -70,7 +81,7 @@ public partial class EditEventPage : ContentPage
         ev.Location = (LocationEntry.Text ?? "").Trim();
         ev.StartTime = start;
         ev.Description = string.IsNullOrWhiteSpace(DescEditor.Text) ? null : DescEditor.Text.Trim();
-        ev.MaxParticipants = max > 0 ? max : 50;
+        ev.MaxParticipants = max;
 
         await db.SaveChangesAsync();
         await DisplayAlert("OK", "Muutokset tallennettu.", "OK");

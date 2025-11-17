@@ -58,15 +58,24 @@ public partial class NewEventPage : ContentPage
 
     private async void OnSave(object sender, EventArgs e)
     {
+        var validationErrors = new List<string>();
+
         if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            validationErrors.Add("Otsikko on pakollinen");
+        else if (TitleEntry.Text.Length > 200)
+            validationErrors.Add("Otsikon enimmäispituus on 200 merkkiä");
+
+        if (LocationEntry.Text?.Length > 200)
+            validationErrors.Add("Sijainnin enimmäispituus on 200 merkkiä");
+
+        if (!int.TryParse(MaxEntry.Text, out int max) || max < 1)
+            validationErrors.Add("Osallistujien lukumäärän on oltava vähintään 1");
+
+        if (validationErrors.Any())
         {
-            await DisplayAlert("Virhe", "Otsikko on pakollinen.", "OK");
+            await DisplayAlert("Virhe", string.Join("\n", validationErrors), "OK");
             return;
         }
-
-        int max = 50;
-        int.TryParse(MaxEntry.Text, out max);
-        if (max <= 0) max = 50;
 
         var start = DatePicker.Date + TimePicker.Time;
 
