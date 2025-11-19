@@ -11,6 +11,7 @@
             <SearchBar x:Name="Search"
                    Placeholder="Hae nimellä tai paikalla"
                    TextChanged="OnSearchChanged"
+                       Grid.Row="0"
                       TextColor="#1E293B" 
                        BackgroundColor="#F5EFFF"
                        PlaceholderColor="#798394"/>
