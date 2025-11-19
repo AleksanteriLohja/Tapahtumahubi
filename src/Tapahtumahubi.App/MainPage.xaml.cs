@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using Tapahtumahubi.Domain;
 using Tapahtumahubi.Infrastructure;
@@ -15,6 +15,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         _dbFactory = dbFactory;
         EventsList.ItemsSource = _items;
+
     }
 
     protected override async void OnAppearing()
@@ -32,7 +33,12 @@ public partial class MainPage : ContentPage
             .ToListAsync();
 
         _items = new ObservableCollection<Event>(eventsFromDb);
+        _items.CollectionChanged += async (s, e) =>
+        {
+            await AnimateButtonState(DeleteAllButton, _items.Count > 0);
+        };
         EventsList.ItemsSource = _items;
+        DeleteAllButton.IsEnabled = _items.Count > 0;
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
@@ -120,4 +126,40 @@ public partial class MainPage : ContentPage
             await DisplayAlert("Virhe", $"Poisto epäonnistui: {ex.Message}", "OK");
         }
     }
+
+
+    private async void OnDeleteAll(object sender, EventArgs e)
+    {
+        bool ok = await DisplayAlert(
+            "Poista kaikki",
+            "Haluatko varmasti poistaa KAIKKI tapahtumat?",
+            "Poista kaikki",
+            "Peruuta");
+
+        if (!ok)
+            return;
+
+        try
+        {
+            using var db = await _dbFactory.CreateDbContextAsync();
+            db.Events.RemoveRange(db.Events);
+            await db.SaveChangesAsync();
+            _items.Clear();
+            await DisplayAlert("OK", "Kaikki tapahtumat poistettu.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Virhe", $"Poisto epäonnistui: {ex.Message}", "OK");
+        }
+    }
+
+    private async Task AnimateButtonState(Button btn, bool isEnabled)
+    {
+        double targetOpacity = isEnabled ? 1.0 : 0.4;
+
+        await btn.FadeTo(targetOpacity, 250, Easing.CubicOut);
+
+        btn.IsEnabled = isEnabled;
+    }
+
 }
