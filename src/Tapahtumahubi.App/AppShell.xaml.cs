@@ -10,6 +10,9 @@ namespace Tapahtumahubi.App
             InitializeComponent();
             // Reitti muokkaus-/luontisivulle
             Routing.RegisterRoute(nameof(NewEventPage), typeof(NewEventPage));
+            Routing.RegisterRoute(nameof(ParticipantsPage), typeof(ParticipantsPage));
+            Routing.RegisterRoute(nameof(AddEditParticipantPage), typeof(AddEditParticipantPage));
+
         }
     }
 }

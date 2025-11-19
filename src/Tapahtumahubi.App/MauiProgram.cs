@@ -24,6 +24,10 @@ public static class MauiProgram
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<NewEventPage>();
         builder.Services.AddTransient<EditEventPage>();
+        builder.Services.AddSingleton<IParticipantService, ParticipantService>();
+        builder.Services.AddTransient<ParticipantsPage>();
+        builder.Services.AddTransient<AddEditParticipantPage>();
+
 
         var app = builder.Build();
 
