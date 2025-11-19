@@ -29,9 +29,11 @@ public partial class MainPage : ContentPage
     private async Task LoadData()
     {
         using var db = await _dbFactory.CreateDbContextAsync();
+        var now = DateTime.Now;
+
         var eventsFromDb = await db.Events
             .AsNoTracking()
-            .OrderBy(e => e.StartTime)
+            .OrderUpcomingFirst(now)   // tulevat ensin, sitten StartTime nousevasti
             .ToListAsync();
 
         _items = new ObservableCollection<Event>(eventsFromDb);
@@ -45,16 +47,19 @@ public partial class MainPage : ContentPage
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
     {
-        var q = e.NewTextValue?.Trim().ToLowerInvariant() ?? "";
-        if (string.IsNullOrEmpty(q))
+        var q = e.NewTextValue?.Trim();
+        if (string.IsNullOrWhiteSpace(q))
         {
             EventsList.ItemsSource = _items;
             return;
         }
 
-        EventsList.ItemsSource = _items.Where(x =>
-            (x.Title ?? "").ToLower().Contains(q) ||
-            (x.Location ?? "").ToLower().Contains(q));
+        // Yhtenäinen haku: Title/Location/Description (Infrastructure.EventQueries.Search)
+        EventsList.ItemsSource = _items
+            .AsQueryable()
+            .Search(q!)
+            .ToList();
+        // Järjestys säilyy: _items on jo OrderUpcomingFirst(now).
     }
 
     private async void OnNewEvent(object sender, EventArgs e)
@@ -92,7 +97,7 @@ public partial class MainPage : ContentPage
         });
     }
 
-    // Osallistujat-nappi (UUSI)
+    // Osallistujat-nappi
     private async void OnOpenParticipants(object sender, EventArgs e)
     {
         if (sender is Button b && b.CommandParameter is EventEntity ev)
