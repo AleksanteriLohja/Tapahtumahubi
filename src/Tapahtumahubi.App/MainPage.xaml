@@ -3,30 +3,62 @@
     x:Class="Tapahtumahubi.App.MainPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Tapahtumat" BackgroundColor="#E5D9F2" >
+    Title="Tapahtumat"
+    BackgroundColor="#E5D9F2">
 
-    <Grid RowDefinitions="Auto, *, Auto" Padding="16" RowSpacing="12" >
+    <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="12">
+
         <SearchBar x:Name="Search"
                    Placeholder="Hae nimellä tai paikalla"
                    TextChanged="OnSearchChanged"
                    Grid.Row="0"
-                   TextColor="#1E293B" 
+                   TextColor="#1E293B"
                    BackgroundColor="#F5EFFF"
-                   PlaceholderColor="#798394"/>
+                   PlaceholderColor="#798394" />
 
         <CollectionView x:Name="EventsList"
                         SelectionMode="None"
                         ItemsLayout="VerticalList"
-                        Grid.Row="1" >
+                        Grid.Row="1">
+
+            <!-- TYHJÄN LISTAN TILA -->
+            <CollectionView.EmptyView>
+                <Frame Padding="24" Margin="12"
+                       BackgroundColor="#F5EFFF"
+                       HasShadow="True"
+                       CornerRadius="12">
+                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Ei tapahtumia vielä"
+                               FontSize="22"
+                               FontAttributes="Bold"
+                               TextColor="#1E293B"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="Luo ensimmäinen tapahtuma aloittaaksesi."
+                               FontSize="14"
+                               TextColor="#1E293B"
+                               Opacity="0.8"
+                               HorizontalTextAlignment="Center" />
+                        <Button Text="Luo ensimmäinen tapahtuma"
+                                Clicked="OnNewEvent"
+                                TextColor="#1E293B"
+                                BackgroundColor="#A294F9"
+                                Padding="12,8"
+                                CornerRadius="10" />
+                    </VerticalStackLayout>
+                </Frame>
+            </CollectionView.EmptyView>
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <!-- Rivi -->
                     <Grid>
-                        <Frame x:Name="RowRoot" Padding="12" Margin="0,6" HasShadow="True" BackgroundColor="#F5EFFF" >
+                        <Frame x:Name="RowRoot"
+                               Padding="12" Margin="0,6"
+                               HasShadow="True"
+                               BackgroundColor="#F5EFFF">
                             <VerticalStackLayout Spacing="6" BackgroundColor="#F5EFFF">
-                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="#1E293B"/>
-                                <Label Text="{Binding StartTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" TextColor="#1E293B"/>
-                                <Label Text="{Binding Location}" TextColor="#1E293B"/>
+                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" />
+                                <Label Text="{Binding StartTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" TextColor="#1E293B" />
+                                <Label Text="{Binding Location}" TextColor="#1E293B" />
                                 <Label Text="{Binding Description}" TextColor="#1E293B"
                                        LineBreakMode="TailTruncation" MaxLines="2" />
 
@@ -35,27 +67,25 @@
                                             Clicked="OnEdit"
                                             CommandParameter="{Binding .}"
                                             TextColor="#1E293B"
-                                            BackgroundColor="#A294F9"/>
-                                    <!-- UUSI: Osallistujat -->
+                                            BackgroundColor="#A294F9" />
                                     <Button Text="Osallistujat"
                                             Clicked="OnOpenParticipants"
                                             CommandParameter="{Binding .}"
                                             TextColor="#1E293B"
-                                            BackgroundColor="#A294F9"/>
+                                            BackgroundColor="#A294F9" />
                                     <Button Text="Poista"
                                             Clicked="OnDelete"
-                                            CommandParameter="{Binding .}" 
-                                            TextColor="#1E293B" 
-                                            BackgroundColor="#A294F9"/>
+                                            CommandParameter="{Binding .}"
+                                            TextColor="#1E293B"
+                                            BackgroundColor="#A294F9" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
                             <!-- Rivin napautus -> muokkaus -->
                             <Frame.GestureRecognizers>
-                                <TapGestureRecognizer
-                                    NumberOfTapsRequired="1"
-                                    Tapped="OnItemTapped"
-                                    CommandParameter="{Binding .}" />
+                                <TapGestureRecognizer NumberOfTapsRequired="1"
+                                                      Tapped="OnItemTapped"
+                                                      CommandParameter="{Binding .}" />
                             </Frame.GestureRecognizers>
                         </Frame>
                     </Grid>
@@ -64,10 +94,17 @@
         </CollectionView>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,*">
-            <Button Text="Uusi tapahtuma" Clicked="OnNewEvent"
-                    BackgroundColor="#A294F9" Grid.Column="0" Margin="10,0"/>
-            <Button x:Name="DeleteAllButton" Text="Poista kaikki" Clicked="OnDeleteAll" Margin="10,0"
-                    BackgroundColor="#A294F9" Grid.Column="1"/>
+            <Button Text="Uusi tapahtuma"
+                    Clicked="OnNewEvent"
+                    BackgroundColor="#A294F9"
+                    Grid.Column="0" Margin="10,0" />
+            <Button x:Name="DeleteAllButton"
+                    Text="Poista kaikki"
+                    Clicked="OnDeleteAll"
+                    Margin="10,0"
+                    BackgroundColor="#A294F9"
+                    Grid.Column="1" />
         </Grid>
+
     </Grid>
 </ContentPage>
