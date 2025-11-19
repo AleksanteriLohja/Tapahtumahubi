@@ -3,26 +3,41 @@
     x:Class="Tapahtumahubi.App.NewEventPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Uusi / Muokkaa tapahtumaa">
+    Title="Uusi / Muokkaa tapahtumaa"
+    BackgroundColor="#E5D9F2">
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+        <VerticalStackLayout Padding="16" Spacing="12" >
 
             <Label x:Name="HeaderLabel"
                    Text="Uusi tapahtuma"
                    FontAttributes="Bold"
-                   FontSize="20"/>
+                   FontSize="20"
+                    TextColor="#1E293B" />
 
-            <Entry x:Name="TitleEntry" Placeholder="Otsikko" />
-            <Entry x:Name="LocationEntry" Placeholder="Paikka" />
-            <DatePicker x:Name="DatePicker" />
-            <TimePicker x:Name="TimePicker" />
-            <Editor x:Name="DescEditor" Placeholder="Kuvaus" AutoSize="TextChanges" />
-            <Entry x:Name="MaxEntry" Placeholder="Maks. osallistujat" Keyboard="Numeric" Text="50" />
+            <Entry x:Name="TitleEntry" Placeholder="Otsikko" BackgroundColor="#F5EFFF"
+                    TextColor="#1E293B" PlaceholderColor="#798394" />
+            <Entry x:Name="LocationEntry" Placeholder="Paikka" BackgroundColor="#F5EFFF"
+                    TextColor="#1E293B" PlaceholderColor="#798394" />
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,*" ColumnSpacing="30" >
+                <Label Text="Valitse päivämäärä: " Grid.Column="1" TextColor="#1E293B"
+                       VerticalOptions="Center" HorizontalOptions="Center"/>
+            <DatePicker x:Name="DatePicker" BackgroundColor="#F5EFFF"
+                         TextColor="#1E293B" Grid.Column="2"/>
+                <Label Text="Valitse aika " Grid.Column="3" TextColor="#1E293B"
+                       VerticalOptions="Center" HorizontalOptions="Center"/>
+            <TimePicker x:Name="TimePicker" BackgroundColor="#F5EFFF"
+                         TextColor="#1E293B" Grid.Column="4"  />
+            </Grid>
+            <Editor x:Name="DescEditor" Placeholder="Kuvaus" AutoSize="TextChanges"
+                     TextColor="#1E293B" BackgroundColor="#F5EFFF" PlaceholderColor="#798394"/>
+            <Entry x:Name="MaxEntry" Placeholder="Maks. osallistujat" 
+                    TextColor="#1E293B" Keyboard="Numeric" Text="50" PlaceholderColor="#798394"
+                   BackgroundColor="#F5EFFF"/>
 
             <HorizontalStackLayout Spacing="12">
-                <Button Text="Tallenna" Clicked="OnSave" />
-                <Button Text="Peruuta" Clicked="OnCancel" />
+                <Button Text="Tallenna" Clicked="OnSave"  TextColor="#1E293B" BackgroundColor="#A294F9"/>
+                <Button Text="Peruuta" Clicked="OnCancel" TextColor="#1E293B"  BackgroundColor="#A294F9"/>
             </HorizontalStackLayout>
 
         </VerticalStackLayout>
