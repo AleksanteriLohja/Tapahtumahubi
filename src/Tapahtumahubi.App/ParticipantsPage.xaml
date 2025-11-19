@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Tapahtumahubi.App.ParticipantsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="{Binding PageTitle}">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Lisää" Clicked="OnAddClicked" />
+    </ContentPage.ToolbarItems>
+
+    <VerticalStackLayout Padding="16" Spacing="8">
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="{Binding CounterText}" FontAttributes="Bold" />
+            <Button Grid.Column="1" Text="Päivitä" Clicked="OnRefreshClicked" />
+        </Grid>
+
+        <CollectionView ItemsSource="{Binding Participants}">
+            <CollectionView.EmptyView>
+                <Label Text="Ei osallistujia." HorizontalOptions="Center" VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="8" ColumnDefinitions="Auto,*,Auto">
+                        <Label Text="👤" FontSize="18" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="{Binding Name}" FontAttributes="Bold" />
+                            <Label Text="{Binding Email}" FontSize="12" TextColor="Gray" />
+                        </VerticalStackLayout>
+                        <HorizontalStackLayout Grid.Column="2" Spacing="6" VerticalOptions="Center">
+                            <Button Text="Muokkaa"
+                                    Clicked="OnEditClick"
+                                    CommandParameter="{Binding .}" />
+                            <Button Text="Poista"
+                                    BackgroundColor="IndianRed"
+                                    TextColor="White"
+                                    Clicked="OnDeleteClick"
+                                    CommandParameter="{Binding .}" />
+                        </HorizontalStackLayout>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

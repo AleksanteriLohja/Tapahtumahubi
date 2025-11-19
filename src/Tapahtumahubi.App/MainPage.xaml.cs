@@ -3,6 +3,9 @@ using System.Collections.ObjectModel;
 using Tapahtumahubi.Domain;
 using Tapahtumahubi.Infrastructure;
 
+// Alias selkeyttämään osallistujanäkymän navigoinnin parametreja
+using EventEntity = Tapahtumahubi.Domain.Event;
+
 namespace Tapahtumahubi.App;
 
 public partial class MainPage : ContentPage
@@ -15,7 +18,6 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         _dbFactory = dbFactory;
         EventsList.ItemsSource = _items;
-
     }
 
     protected override async void OnAppearing()
@@ -90,6 +92,20 @@ public partial class MainPage : ContentPage
         });
     }
 
+    // Osallistujat-nappi (UUSI)
+    private async void OnOpenParticipants(object sender, EventArgs e)
+    {
+        if (sender is Button b && b.CommandParameter is EventEntity ev)
+        {
+            await Shell.Current.GoToAsync(nameof(ParticipantsPage), new Dictionary<string, object>
+            {
+                { "eventId", ev.Id },
+                { "eventTitle", ev.Title },
+                { "maxParticipants", ev.MaxParticipants }
+            });
+        }
+    }
+
     // Poista-nappi
     private async void OnDelete(object sender, EventArgs e)
     {
@@ -127,7 +143,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-
     private async void OnDeleteAll(object sender, EventArgs e)
     {
         bool ok = await DisplayAlert(
@@ -156,10 +171,7 @@ public partial class MainPage : ContentPage
     private async Task AnimateButtonState(Button btn, bool isEnabled)
     {
         double targetOpacity = isEnabled ? 1.0 : 0.4;
-
         await btn.FadeTo(targetOpacity, 250, Easing.CubicOut);
-
         btn.IsEnabled = isEnabled;
     }
-
 }

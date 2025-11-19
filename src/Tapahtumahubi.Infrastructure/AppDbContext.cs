@@ -12,11 +12,14 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        base.OnModelCreating(b);
+
         b.Entity<Event>(e =>
         {
             e.Property(x => x.Title).IsRequired().HasMaxLength(200);
-            e.Property(x => x.Location).HasMaxLength(200);
+            e.Property(x => x.Location).IsRequired().HasMaxLength(200);
             e.Property(x => x.MaxParticipants).HasDefaultValue(50);
+
             e.HasMany(x => x.Participants)
              .WithOne()
              .HasForeignKey(p => p.EventId)
@@ -26,7 +29,10 @@ public class AppDbContext : DbContext
         b.Entity<Participant>(p =>
         {
             p.Property(x => x.Name).IsRequired().HasMaxLength(200);
-            p.Property(x => x.Email).HasMaxLength(200);
+            p.Property(x => x.Email).IsRequired().HasMaxLength(200);
+
+            // Estä sama sähköposti samassa tapahtumassa
+            p.HasIndex(x => new { x.EventId, x.Email }).IsUnique();
         });
     }
 }
