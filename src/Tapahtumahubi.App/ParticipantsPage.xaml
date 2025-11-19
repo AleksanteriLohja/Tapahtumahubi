@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Title="{Binding PageTitle}">
+
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Lisää" Clicked="OnAddClicked" />
     </ContentPage.ToolbarItems>
@@ -15,9 +16,29 @@
         </Grid>
 
         <CollectionView ItemsSource="{Binding Participants}">
+            <!-- TYHJÄN LISTAN TILA -->
             <CollectionView.EmptyView>
-                <Label Text="Ei osallistujia." HorizontalOptions="Center" VerticalOptions="Center" />
+                <Frame Padding="24" Margin="12"
+                       BackgroundColor="#F5EFFF"
+                       HasShadow="True"
+                       CornerRadius="12">
+                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label Text="Ei osallistujia"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="Lisää ensimmäinen osallistuja tähän tapahtumaan."
+                               FontSize="14"
+                               Opacity="0.8"
+                               HorizontalTextAlignment="Center" />
+                        <Button Text="Lisää osallistuja"
+                                Clicked="OnAddClicked"
+                                Padding="12,8"
+                                CornerRadius="10" />
+                    </VerticalStackLayout>
+                </Frame>
             </CollectionView.EmptyView>
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="8" ColumnDefinitions="Auto,*,Auto">
