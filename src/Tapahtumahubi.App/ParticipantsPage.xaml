@@ -3,42 +3,28 @@
     x:Class="Tapahtumahubi.App.ParticipantsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="{Binding PageTitle}">
+    Title="{Binding PageTitle}"
+    BackgroundColor="#E5D9F2">
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Lisää" Clicked="OnAddClicked" />
     </ContentPage.ToolbarItems>
-
-    <VerticalStackLayout Padding="16" Spacing="8">
-        <Grid ColumnDefinitions="*,Auto">
-            <Label Text="{Binding CounterText}" FontAttributes="Bold" />
-            <Button Grid.Column="1" Text="Päivitä" Clicked="OnRefreshClicked" />
+    <Grid RowDefinitions="auto,*">
+    <VerticalStackLayout Padding="16" Spacing="8" Grid.Row="0">
+        <Grid ColumnDefinitions="*,auto,Auto" Margin="8,0">
+            <Label Text="{Binding CounterText}" FontAttributes="Bold" TextColor="#1E293B"/>
+            <Button Grid.Column="1" Text="Päivitä" Clicked="OnRefreshClicked"
+                    BackgroundColor="#A294F9" TextColor="#1E293B" Margin="8,0"/>
+            <Button x:Name="DeleteAllButton"
+                    Text="Takaisin" Grid.Column="2"
+                     Clicked="OnBack"
+                     
+                     BackgroundColor="IndianRed"
+                     TextColor="White" />
         </Grid>
 
-        <CollectionView ItemsSource="{Binding Participants}">
-            <!-- TYHJÄN LISTAN TILA -->
-            <CollectionView.EmptyView>
-                <Frame Padding="24" Margin="12"
-                       BackgroundColor="#F5EFFF"
-                       HasShadow="True"
-                       CornerRadius="12">
-                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
-                        <Label Text="Ei osallistujia"
-                               FontSize="20"
-                               FontAttributes="Bold"
-                               HorizontalTextAlignment="Center" />
-                        <Label Text="Lisää ensimmäinen osallistuja tähän tapahtumaan."
-                               FontSize="14"
-                               Opacity="0.8"
-                               HorizontalTextAlignment="Center" />
-                        <Button Text="Lisää osallistuja"
-                                Clicked="OnAddClicked"
-                                Padding="12,8"
-                                CornerRadius="10" />
-                    </VerticalStackLayout>
-                </Frame>
-            </CollectionView.EmptyView>
-
+            <CollectionView ItemsSource="{Binding Participants}" Grid.Row="1">
+          
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="8" ColumnDefinitions="Auto,*,Auto">
@@ -61,5 +47,29 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+            <Grid Grid.Row="1" RowDefinitions="auto"  IsVisible="{Binding IsListEmpty}" >
+        <Frame Padding="24" Margin="12"
+       BackgroundColor="#F5EFFF"
+       HasShadow="True"
+       CornerRadius="12" Grid.Row="0">
+            <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                <Label Text="Ei osallistujia"
+               FontSize="20"
+               FontAttributes="Bold"
+               HorizontalTextAlignment="Center" TextColor="#1E293B" />
+                <Label Text="Lisää ensimmäinen osallistuja tähän tapahtumaan."
+               FontSize="14"
+               Opacity="0.8"
+               HorizontalTextAlignment="Center" TextColor="#1E293B"/>
+                <Button Text="Lisää osallistuja"
+                Clicked="OnAddClicked"
+                Padding="12,8"
+                CornerRadius="10" 
+                BackgroundColor="#A294F9" TextColor="#1E293B"/>
+            </VerticalStackLayout>
+        </Frame>
+        </Grid>
     </VerticalStackLayout>
+    </Grid>
 </ContentPage>

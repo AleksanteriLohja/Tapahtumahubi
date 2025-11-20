@@ -21,34 +21,7 @@
                         ItemsLayout="VerticalList"
                         Grid.Row="1">
 
-            <!-- TYHJÄN LISTAN TILA -->
-            <CollectionView.EmptyView>
-                <Frame Padding="24" Margin="12"
-                       BackgroundColor="#F5EFFF"
-                       HasShadow="True"
-                       CornerRadius="12">
-                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
-                        <Label Text="Ei tapahtumia vielä"
-                               FontSize="22"
-                               FontAttributes="Bold"
-                               TextColor="#1E293B"
-                               HorizontalTextAlignment="Center" />
-                        <Label Text="Luo ensimmäinen tapahtuma aloittaaksesi."
-                               FontSize="14"
-                               TextColor="#1E293B"
-                               Opacity="0.8"
-                               HorizontalTextAlignment="Center" />
-                        <Button Text="Luo ensimmäinen tapahtuma"
-                                Clicked="OnNewEvent"
-                                TextColor="#1E293B"
-                                BackgroundColor="#A294F9"
-                                Padding="12,8"
-                                CornerRadius="10" />
-                    </VerticalStackLayout>
-                </Frame>
-            </CollectionView.EmptyView>
-
-            <CollectionView.ItemTemplate>
+         <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
                         <Frame x:Name="RowRoot"
@@ -76,8 +49,8 @@
                                     <Button Text="Poista"
                                             Clicked="OnDelete"
                                             CommandParameter="{Binding .}"
-                                            TextColor="#1E293B"
-                                            BackgroundColor="#A294F9" />
+                                            TextColor="White"
+                                            BackgroundColor="IndianRed" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
 
@@ -92,17 +65,47 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
+        <Grid  Grid.Row="1" 
+               IsVisible="{Binding IsListEmpty}" RowDefinitions="auto">
+        <Frame Grid.Row="0"
+        Padding="24" Margin="12"
+        BackgroundColor="#F5EFFF"
+        HasShadow="True"
+        CornerRadius="12" 
+        
+        >
+            <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
+                <Label Text="Ei tapahtumia vielä"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="#1E293B"
+                   HorizontalTextAlignment="Center" />
+                <Label Text="Luo ensimmäinen tapahtuma aloittaaksesi."
+                   FontSize="14"
+                   TextColor="#1E293B"
+                   Opacity="0.8"
+                   HorizontalTextAlignment="Center" />
+                <Button Text="Luo ensimmäinen tapahtuma"
+                    Clicked="OnNewEvent"
+                    TextColor="#1E293B"
+                    BackgroundColor="#A294F9"
+                    Padding="12,8"
+                    CornerRadius="10" />
+            </VerticalStackLayout>
+        </Frame>
+        </Grid>
         <Grid Grid.Row="2" ColumnDefinitions="*,*">
             <Button Text="Uusi tapahtuma"
                     Clicked="OnNewEvent"
                     BackgroundColor="#A294F9"
+                    TextColor="#1E293B"
                     Grid.Column="0" Margin="10,0" />
             <Button x:Name="DeleteAllButton"
                     Text="Poista kaikki"
                     Clicked="OnDeleteAll"
                     Margin="10,0"
-                    BackgroundColor="#A294F9"
+                    BackgroundColor="IndianRed"
+                    TextColor="White"
                     Grid.Column="1" />
         </Grid>
 

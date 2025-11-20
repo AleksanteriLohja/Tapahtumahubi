@@ -12,12 +12,19 @@ public partial class MainPage : ContentPage
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private ObservableCollection<Event> _items = new();
-
+    public bool IsListEmpty => _items.Count == 0;
     public MainPage(IDbContextFactory<AppDbContext> dbFactory)
     {
         InitializeComponent();
         _dbFactory = dbFactory;
         EventsList.ItemsSource = _items;
+        BindingContext = this;
+
+       
+        _items.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(IsListEmpty));
+        };
     }
 
     protected override async void OnAppearing()
@@ -33,17 +40,17 @@ public partial class MainPage : ContentPage
 
         var eventsFromDb = await db.Events
             .AsNoTracking()
-            .OrderUpcomingFirst(now)   // tulevat ensin, sitten StartTime nousevasti
+            .OrderUpcomingFirst(now)
             .ToListAsync();
 
-        _items = new ObservableCollection<Event>(eventsFromDb);
-        _items.CollectionChanged += async (s, e) =>
-        {
-            await AnimateButtonState(DeleteAllButton, _items.Count > 0);
-        };
-        EventsList.ItemsSource = _items;
+        _items.Clear();
+        foreach (var ev in eventsFromDb)
+            _items.Add(ev);
+
         DeleteAllButton.IsEnabled = _items.Count > 0;
+        await AnimateButtonState(DeleteAllButton, _items.Count > 0);
     }
+
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e)
     {

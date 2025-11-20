@@ -3,13 +3,25 @@
     x:Class="Tapahtumahubi.App.AddEditParticipantPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="{Binding PageTitle}">
+    Title="{Binding PageTitle}" BackgroundColor="#E5D9F2">
     <VerticalStackLayout Padding="16" Spacing="12">
-        <Entry x:Name="NameEntry" Placeholder="Nimi" Text="{Binding Name}" />
-        <Entry x:Name="EmailEntry" Placeholder="Sähköposti" Keyboard="Email" Text="{Binding Email}" />
-        <Grid ColumnDefinitions="*,Auto">
+        <Entry x:Name="NameEntry"   TextColor="#1E293B" BackgroundColor="#F5EFFF" 
+               PlaceholderColor="#798394" Placeholder="Nimi" Text="{Binding Name}" />
+        <Entry x:Name="EmailEntry"  TextColor="#1E293B"  BackgroundColor="#F5EFFF"
+               PlaceholderColor="#798394" Placeholder="Sähköposti"
+               Keyboard="Email" Text="{Binding Email}" />
+        <Grid ColumnDefinitions="* ,auto,Auto">
             <Label Text="" />
-            <Button Grid.Column="1" Text="Tallenna" Clicked="OnSaveClicked" />
+            <Button Grid.Column="2" Text="Tallenna" 
+                    TextColor="#1E293B" 
+                    Clicked="OnSaveClicked" BackgroundColor="#A294F9" />
+            <Button x:Name="DeleteAllButton"
+             Text="Peruuta" Grid.Column="1"
+             Clicked="OnCancel"
+             Margin="10,0"
+             BackgroundColor="IndianRed"
+             TextColor="White"
+             />
         </Grid>
     </VerticalStackLayout>
 </ContentPage>
