@@ -9,6 +9,7 @@ public partial class ParticipantsPage : ContentPage, IQueryAttributable
     private readonly IParticipantService _svc;
 
     public ObservableCollection<Participant> Participants { get; } = new();
+    public bool IsListEmpty => Participants.Count == 0;
     public string PageTitle { get; set; } = "Osallistujat";
     private int _eventId;
     private int _maxParticipants = int.MaxValue;
@@ -20,6 +21,10 @@ public partial class ParticipantsPage : ContentPage, IQueryAttributable
         InitializeComponent();
         _svc = svc;
         BindingContext = this;
+        Participants.CollectionChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(IsListEmpty));
+        };
     }
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
@@ -96,5 +101,10 @@ public partial class ParticipantsPage : ContentPage, IQueryAttributable
                 await DisplayAlert("Virhe", ex.Message, "OK");
             }
         }
+    }
+
+    private async void OnBack(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
     }
 }

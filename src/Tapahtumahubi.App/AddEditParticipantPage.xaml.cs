@@ -52,4 +52,8 @@ public partial class AddEditParticipantPage : ContentPage, IQueryAttributable
             await DisplayAlert("Virhe", ex.Message, "OK");
         }
     }
+    private async void OnCancel(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("..");
+    }
 }
