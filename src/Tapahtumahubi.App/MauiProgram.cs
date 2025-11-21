@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Storage;
 using Tapahtumahubi.Infrastructure;
 using Tapahtumahubi.App.ViewModels;
-using Microsoft.Maui.Storage;
 
 namespace Tapahtumahubi.App;
 
@@ -10,6 +11,7 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
         builder
             .UseMauiApp<App>()
             .ConfigureFonts(fonts =>
@@ -17,6 +19,12 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+#if DEBUG
+        // Kirjoita frameworkin logit VS:n/Debug Outputiin
+        builder.Logging.ClearProviders();
+        builder.Logging.AddDebug();
+#endif
 
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "events.db");
         builder.Services.AddDbContextFactory<AppDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
@@ -43,6 +51,7 @@ public static class MauiProgram
 #if DEBUG
         System.Diagnostics.Debug.WriteLine($"[DB PATH] {dbPath}");
 #endif
+
         return app;
     }
 }
