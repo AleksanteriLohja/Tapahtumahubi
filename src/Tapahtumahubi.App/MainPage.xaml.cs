@@ -1,189 +1,21 @@
-using Microsoft.EntityFrameworkCore;
-using System.Collections.ObjectModel;
-using Tapahtumahubi.Domain;
-using Tapahtumahubi.Infrastructure;
-
-// Alias selkeyttämään osallistujanäkymän navigoinnin parametreja
-using EventEntity = Tapahtumahubi.Domain.Event;
+using Tapahtumahubi.App.ViewModels;
 
 namespace Tapahtumahubi.App;
 
 public partial class MainPage : ContentPage
 {
-    private readonly IDbContextFactory<AppDbContext> _dbFactory;
-    private ObservableCollection<Event> _items = new();
-    public bool IsListEmpty => _items.Count == 0;
-    public MainPage(IDbContextFactory<AppDbContext> dbFactory)
+    private readonly MainPageViewModel _vm;
+
+    public MainPage(MainPageViewModel vm)
     {
         InitializeComponent();
-        _dbFactory = dbFactory;
-        EventsList.ItemsSource = _items;
-        BindingContext = this;
-
-       
-        _items.CollectionChanged += (_, _) =>
-        {
-            OnPropertyChanged(nameof(IsListEmpty));
-        };
+        _vm = vm;
+        BindingContext = _vm;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await LoadData();
-    }
-
-    private async Task LoadData()
-    {
-        using var db = await _dbFactory.CreateDbContextAsync();
-        var now = DateTime.Now;
-
-        var eventsFromDb = await db.Events
-            .AsNoTracking()
-            .OrderUpcomingFirst(now)
-            .ToListAsync();
-
-        _items.Clear();
-        foreach (var ev in eventsFromDb)
-            _items.Add(ev);
-
-        DeleteAllButton.IsEnabled = _items.Count > 0;
-        await AnimateButtonState(DeleteAllButton, _items.Count > 0);
-    }
-
-
-    private void OnSearchChanged(object sender, TextChangedEventArgs e)
-    {
-        var q = e.NewTextValue?.Trim();
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            EventsList.ItemsSource = _items;
-            return;
-        }
-
-        // Yhtenäinen haku: Title/Location/Description (Infrastructure.EventQueries.Search)
-        EventsList.ItemsSource = _items
-            .AsQueryable()
-            .Search(q!)
-            .ToList();
-        // Järjestys säilyy: _items on jo OrderUpcomingFirst(now).
-    }
-
-    private async void OnNewEvent(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync(nameof(NewEventPage));
-    }
-
-    // Napautus = muokkaus
-    private async void OnItemTapped(object? sender, TappedEventArgs e)
-    {
-        var ev = e.Parameter as Event
-                 ?? (sender as BindableObject)?.BindingContext as Event;
-        if (ev is null) return;
-
-        await Shell.Current.GoToAsync(nameof(NewEventPage), new Dictionary<string, object>
-        {
-            ["EventId"] = ev.Id
-        });
-    }
-
-    // Muokkaa-nappi
-    private async void OnEdit(object sender, EventArgs e)
-    {
-        var ev = (sender as Button)?.CommandParameter as Event
-                 ?? (sender as BindableObject)?.BindingContext as Event;
-        if (ev is null)
-        {
-            await DisplayAlert("Virhe", "Rivin tietoa ei saatu.", "OK");
-            return;
-        }
-
-        await Shell.Current.GoToAsync(nameof(NewEventPage), new Dictionary<string, object>
-        {
-            ["EventId"] = ev.Id
-        });
-    }
-
-    // Osallistujat-nappi
-    private async void OnOpenParticipants(object sender, EventArgs e)
-    {
-        if (sender is Button b && b.CommandParameter is EventEntity ev)
-        {
-            await Shell.Current.GoToAsync(nameof(ParticipantsPage), new Dictionary<string, object>
-            {
-                { "eventId", ev.Id },
-                { "eventTitle", ev.Title },
-                { "maxParticipants", ev.MaxParticipants }
-            });
-        }
-    }
-
-    // Poista-nappi
-    private async void OnDelete(object sender, EventArgs e)
-    {
-        var ev = (sender as Button)?.CommandParameter as Event
-                 ?? (sender as BindableObject)?.BindingContext as Event;
-        if (ev is null)
-        {
-            await DisplayAlert("Virhe", "Rivin tietoa ei saatu.", "OK");
-            return;
-        }
-
-        var ok = await DisplayAlert("Poista", $"Poistetaanko \"{ev.Title}\"?", "Poista", "Peruuta");
-        if (!ok) return;
-
-        try
-        {
-            using var db = await _dbFactory.CreateDbContextAsync();
-            var toRemove = await db.Events.FirstOrDefaultAsync(x => x.Id == ev.Id);
-            if (toRemove is null)
-            {
-                await DisplayAlert("Huom", "Tapahtumaa ei löytynyt (saatettiin jo poistaa).", "OK");
-                return;
-            }
-
-            db.Events.Remove(toRemove);
-            await db.SaveChangesAsync();
-
-            var itemInList = _items.FirstOrDefault(x => x.Id == ev.Id);
-            if (itemInList != null)
-                _items.Remove(itemInList);
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Virhe", $"Poisto epäonnistui: {ex.Message}", "OK");
-        }
-    }
-
-    private async void OnDeleteAll(object sender, EventArgs e)
-    {
-        bool ok = await DisplayAlert(
-            "Poista kaikki",
-            "Haluatko varmasti poistaa KAIKKI tapahtumat?",
-            "Poista kaikki",
-            "Peruuta");
-
-        if (!ok)
-            return;
-
-        try
-        {
-            using var db = await _dbFactory.CreateDbContextAsync();
-            db.Events.RemoveRange(db.Events);
-            await db.SaveChangesAsync();
-            _items.Clear();
-            await DisplayAlert("OK", "Kaikki tapahtumat poistettu.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Virhe", $"Poisto epäonnistui: {ex.Message}", "OK");
-        }
-    }
-
-    private async Task AnimateButtonState(Button btn, bool isEnabled)
-    {
-        double targetOpacity = isEnabled ? 1.0 : 0.4;
-        await btn.FadeTo(targetOpacity, 250, Easing.CubicOut);
-        btn.IsEnabled = isEnabled;
+        await _vm.InitializeAsync();
     }
 }

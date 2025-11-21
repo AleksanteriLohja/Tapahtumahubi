@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Maui.Storage;
 using Tapahtumahubi.Infrastructure;
+using Tapahtumahubi.App.ViewModels;
+using Microsoft.Maui.Storage;
 
 namespace Tapahtumahubi.App;
 
@@ -18,9 +19,9 @@ public static class MauiProgram
             });
 
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "events.db");
-        builder.Services.AddDbContextFactory<AppDbContext>(opt =>
-            opt.UseSqlite($"Data Source={dbPath}"));
+        builder.Services.AddDbContextFactory<AppDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
 
+        // Pages
         builder.Services.AddTransient<MainPage>();
         builder.Services.AddTransient<NewEventPage>();
         builder.Services.AddTransient<EditEventPage>();
@@ -28,21 +29,20 @@ public static class MauiProgram
         builder.Services.AddTransient<ParticipantsPage>();
         builder.Services.AddTransient<AddEditParticipantPage>();
 
+        // ViewModels
+        builder.Services.AddTransient<MainPageViewModel>();
+        builder.Services.AddTransient<NewEventPageViewModel>();
+
         var app = builder.Build();
 
         using var scope = app.Services.CreateScope();
         var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
         using var db = factory.CreateDbContext();
-
-        // Suorita odottavat migraatiot
         db.Database.Migrate();
 
 #if DEBUG
-        // Lisää demo-data vain jos Events on tyhjä
-        AppDbContextSeed.Seed(db);
         System.Diagnostics.Debug.WriteLine($"[DB PATH] {dbPath}");
 #endif
-
         return app;
     }
 }
