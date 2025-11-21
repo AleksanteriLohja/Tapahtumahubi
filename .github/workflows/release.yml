@@ -1,94 +1,65 @@
-name: Release (MSIX)
+name: "CI – release-artefakti (MSIX) Windowsille"
 
 on:
   push:
     tags:
-      - 'v*.*.*'   # esim. v1.0.0
-
-permissions:
-  contents: write
+      - "v*"
+  workflow_dispatch:
 
 jobs:
   build-msix:
     runs-on: windows-latest
-
-    # Yleiset ympäristömuuttujat (lintteri näkee nämä)
     env:
-      APP_NAME: Tapahtumahubi.App
-      APP_VERSION: ${{ github.ref_name }}          # esim. v1.0.0
-      CONFIG: Release
-      FWF: net8.0-windows10.0.19041.0
-      RID: win10-x64
+      DOTNET_VERSION: "8.0.x"
+      CONFIGURATION: Release
+      WINDOWS_TFM: net8.0-windows10.0.19041.0
+      APP_DIR: src/Tapahtumahubi.App
       ARTIFACTS_DIR: ${{ github.workspace }}\artifacts
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install MAUI workload
-        shell: pwsh
+      - name: Install MAUI workload (Windows)
         run: |
-          dotnet workload install maui
+          dotnet workload install maui-windows
           dotnet --info
 
       - name: Restore
-        shell: pwsh
-        run: dotnet restore .\Tapahtumahubi.sln
+        run: dotnet restore
 
-      - name: Publish Windows MSIX
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path "$Env:ARTIFACTS_DIR" -Force | Out-Null
-          dotnet publish ".\src\Tapahtumahubi.App\Tapahtumahubi.App.csproj" `
-            -c "$Env:CONFIG" -f "$Env:FWF" `
-            -p:WindowsPackageType=MSIX -p:GenerateAppxPackageOnBuild=true `
-            -p:AppxPackageSigningEnabled=false -p:UapAppxPackageBuildMode=SideloadOnly `
-            -p:Platform=x64 -p:AppxPackageDir="$Env:ARTIFACTS_DIR\"
-
-      - name: Locate outputs and zip dependencies
-        id: out
+      - name: Publish MSIX (unsigned)
+        working-directory: ${{ env.APP_DIR }}
         shell: pwsh
         run: |
-          $msix = Get-ChildItem "$Env:ARTIFACTS_DIR" -Recurse -Filter *.msix | Select-Object -First 1 -Expand FullName
-          if (-not $msix) { throw "MSIX not found under $Env:ARTIFACTS_DIR" }
+          $ErrorActionPreference = "Stop"
+          dotnet publish .\Tapahtumahubi.App.csproj `
+            -c $env:CONFIGURATION `
+            -f $env:WINDOWS_TFM `
+            -p:WindowsPackageType=MSIX `
+            -p:GenerateAppxPackageOnBuild=true `
+            -p:UapAppxPackageBuildMode=SideloadOnly `
+            -p:AppxPackageSigningEnabled=false `
+            -p:Platform=x64 `
+            -p:AppxPackageDir="${{ env.ARTIFACTS_DIR }}\"
 
-          $deps = Get-ChildItem "$Env:ARTIFACTS_DIR" -Recurse -Filter Microsoft.WindowsAppRuntime.*.msix | ForEach-Object { $_.FullName }
-          $zip  = Join-Path "$Env:ARTIFACTS_DIR" "$Env:APP_NAME-$Env:APP_VERSION-x64+deps.zip"
-
-          echo "MSIX=$msix" >> $env:GITHUB_OUTPUT
-          echo "ZIP=$zip"   >> $env:GITHUB_OUTPUT
-
-          if ($deps) {
-            Compress-Archive -Path $msix,$deps -DestinationPath $zip -Force
-          } else {
-            # Ei riippuvuuksia – zipataan ainakin msix
-            Compress-Archive -Path $msix -DestinationPath $zip -Force
-          }
+      - name: List artifacts
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ env.ARTIFACTS_DIR }}" -Recurse | Format-Table -Auto
 
       - name: Upload MSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ env.APP_NAME }}-${{ env.APP_VERSION }}-msix"
-          path: ${{ steps.out.outputs.MSIX }}
-
-      - name: Upload ZIP (msix + deps)
-        uses: actions/upload-artifact@v4
-        with:
-          name: "${{ env.APP_NAME }}-${{ env.APP_VERSION }}-x64+deps"
-          path: ${{ steps.out.outputs.ZIP }}
-
-      - name: Create GitHub Release and attach files
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.APP_VERSION }}
-          name: "Tapahtumahubi ${{ env.APP_VERSION }}"
-          draft: false
-          prerelease: false
-          files: |
-            ${{ steps.out.outputs.MSIX }}
-            ${{ steps.out.outputs.ZIP }}
+          name: msix-${{ github.run_number }}
+          path: |
+            artifacts\*.msix
+            artifacts\*.msixbundle
+            artifacts\**\Add-AppDevPackage.ps1
+            artifacts\**\*.cer
+          if-no-files-found: error
