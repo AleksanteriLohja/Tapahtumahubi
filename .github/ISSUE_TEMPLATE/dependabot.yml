@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # 1) Päivitä GitHub Actions -workflowt (.github/workflows/*.yml)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Helsinki"
+    target-branch: "main"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(actions)"
+      include: "scope"
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # 2) Päivitä .NET/NuGet -paketit kaikista solutionin alihakemistoista
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "Europe/Helsinki"
+    target-branch: "main"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(nuget)"
+      include: "scope"
+    # Yhdistä pienet päivitykset samaan PR:ään
+    groups:
+      nuget-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      efcore:
+        patterns: ["Microsoft.EntityFrameworkCore*"]
+      maui:
+        patterns: ["Microsoft.Maui*"]
