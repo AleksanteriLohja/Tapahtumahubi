@@ -187,3 +187,7 @@ string Name
 string Email
 
 int EventId (FK)
+
+### Debug-seed
+Debug-ajoissa sovellus lisää 2–3 demotapahtumaa, jos tietokanta on tyhjä.
+Toteutus: `AppDbContextSeed.Seed()` (kutsutaan `MauiProgram.cs`issa).
