@@ -191,3 +191,9 @@ int EventId (FK)
 ### Debug-seed
 Debug-ajoissa sovellus lisää 2–3 demotapahtumaa, jos tietokanta on tyhjä.
 Toteutus: `AppDbContextSeed.Seed()` (kutsutaan `MauiProgram.cs`issa).
+
+## Lataa release (Windows)
+Viimeisimmät Windows-asennuspaketit (.msix/.msixbundle) löytyvät GitHubin **Releases**-osiosta tai suoraan Actions-artifakteina tagien ajosta.
+
+- Windows 10/11: lataa uusin MSIX, suorita ja hyväksy asennus (tarvittaessa "Sideload apps" on oltava sallittu).
+
