@@ -20,7 +20,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      # --- Restore (vain kirjastot + testit, EI MAUI-appia) ---
+      # --- Restore (ei MAUI-appia) ---
       - name: Restore Domain
         run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
@@ -40,14 +40,33 @@ jobs:
       - name: Build Tests (Release)
         run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
 
-      # --- Test ---
-      - name: Test (xUnit)
-        run: dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+      # --- Test + Coverage (Coverlet collector) ---
+      - name: Test (xUnit) + Coverage (Cobertura)
+        run: dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx"
 
-      # --- Artifact: testitulokset ---
+      # --- Raportointi (HTML + yhteenveto) ---
+      - name: Install ReportGenerator tool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        shell: pwsh
+        run: |
+          $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+          reportgenerator -reports:"**\coverage.cobertura.xml" -targetdir:"coverage" -reporttypes:"HtmlInline;Cobertura;TextSummary"
+          Get-Content "coverage\Summary.txt" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+      # --- Artifactit ---
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
+
+      - name: Upload coverage HTML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: coverage
+          if-no-files-found: error
