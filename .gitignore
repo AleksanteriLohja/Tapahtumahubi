@@ -416,3 +416,24 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# --- MAUI / mobile extras ---
+# Android/iOS tuotospaketit ja arkistot
+*.aab
+*.apk
+*.apks
+*.ipa
+*.xcarchive
+*.dSYM
+
+# Allekirjoitus/avaimet (pidä POIS reposta)
+*.jks
+*.keystore
+*.keystore.properties
+*.mobileprovision
+*.provisionprofile
+*.cer  # kehittäjä/testisertit
+
+# macOS roskat
+.DS_Store
+.AppleDouble
