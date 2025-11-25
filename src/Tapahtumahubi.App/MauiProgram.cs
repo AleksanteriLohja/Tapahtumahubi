@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Storage;
-using Tapahtumahubi.Infrastructure;
-using Tapahtumahubi.App.ViewModels;
+﻿using Microsoft.Extensions.Logging;
+using Serilog;
+using System.IO;
 
 namespace Tapahtumahubi.App;
 
@@ -20,38 +18,32 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        // ---- Serilog: tiedostoloki + (DEBUGissä) VS Output/Debug ----
+        var baseDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Tapahtumahubi.App");
+        var logsDir = Path.Combine(baseDir, "logs");
+        Directory.CreateDirectory(logsDir);
+        var logFile = Path.Combine(logsDir, "app-.log");
+
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .Enrich.FromLogContext()
 #if DEBUG
-        // Kirjoita frameworkin logit VS:n/Debug Outputiin
+            .WriteTo.Debug() // vaatii Serilog.Sinks.Debug
+#endif
+            .WriteTo.File(
+                path: logFile,
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 7,
+                shared: true)
+            .CreateLogger();
+
         builder.Logging.ClearProviders();
-        builder.Logging.AddDebug();
-#endif
+        builder.Logging.AddSerilog(dispose: true);
 
-        var dbPath = Path.Combine(FileSystem.AppDataDirectory, "events.db");
-        builder.Services.AddDbContextFactory<AppDbContext>(opt => opt.UseSqlite($"Data Source={dbPath}"));
+        // …palvelurekisteröinnit jos tarvitset (DbContext, Services, jne.)
 
-        // Pages
-        builder.Services.AddTransient<MainPage>();
-        builder.Services.AddTransient<NewEventPage>();
-        builder.Services.AddTransient<EditEventPage>();
-        builder.Services.AddSingleton<IParticipantService, ParticipantService>();
-        builder.Services.AddTransient<ParticipantsPage>();
-        builder.Services.AddTransient<AddEditParticipantPage>();
-
-        // ViewModels
-        builder.Services.AddTransient<MainPageViewModel>();
-        builder.Services.AddTransient<NewEventPageViewModel>();
-
-        var app = builder.Build();
-
-        using var scope = app.Services.CreateScope();
-        var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
-        using var db = factory.CreateDbContext();
-        db.Database.Migrate();
-
-#if DEBUG
-        System.Diagnostics.Debug.WriteLine($"[DB PATH] {dbPath}");
-#endif
-
-        return app;
+        return builder.Build();
     }
 }

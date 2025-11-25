@@ -57,6 +57,7 @@
     <!-- EF Tools vain kehityskäyttöön -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10" PrivateAssets="All" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 
     <!-- SQLite natiivien alustusten varmistus MAUIssa -->
