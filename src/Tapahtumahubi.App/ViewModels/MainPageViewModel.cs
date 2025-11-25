@@ -1,8 +1,8 @@
 // src/Tapahtumahubi.App/ViewModels/MainPageViewModel.cs
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.ObjectModel;
 using Tapahtumahubi.Domain;
 using Tapahtumahubi.Infrastructure;
 
@@ -18,7 +18,7 @@ public partial class MainPageViewModel : BaseViewModel
     [ObservableProperty] private string? searchText;
 
     public bool IsListEmpty => Events.Count == 0;
-    public bool HasItems    => Events.Count  > 0;
+    public bool HasItems => Events.Count > 0;
 
     public MainPageViewModel(IDbContextFactory<AppDbContext> dbFactory)
     {

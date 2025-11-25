@@ -1,4 +1,4 @@
-﻿// src/Tapahtumahubi.App/AppShell.xaml.cs
+// src/Tapahtumahubi.App/AppShell.xaml.cs
 using Microsoft.Maui.Controls;
 
 namespace Tapahtumahubi.App

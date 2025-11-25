@@ -5,11 +5,12 @@ namespace Tapahtumahubi.Tests;
 public class ParticipantTest
 {
     [Fact]
-    public void Valid_Data_Passes_Validation() {
+    public void Valid_Data_Passes_Validation()
+    {
         var participant = new Participant
         {
             Name = "name",
-            Email="test@email.com"
+            Email = "test@email.com"
         };
         var isvalid = participant.Validate(out var errors);
         Assert.True(isvalid);
@@ -26,15 +27,17 @@ public class ParticipantTest
             Email = "invalidEmail"
         };
         var isvalid = participant.Validate(out var errors);
-            Assert.False(isvalid);
+        Assert.False(isvalid);
         Assert.Contains("Sähköpostin muoto on virheellinen", errors);
     }
 
     [Fact]
-    public void Too_Long_Name_Fails_Validation() {
-        var participant = new Participant { 
-            Name= new string ('A',201),
-            Email= "test@email.com"
+    public void Too_Long_Name_Fails_Validation()
+    {
+        var participant = new Participant
+        {
+            Name = new string('A', 201),
+            Email = "test@email.com"
         };
         var isvalid = participant.Validate(out var errors);
         Assert.False(isvalid);

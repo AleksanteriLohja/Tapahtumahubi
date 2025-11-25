@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
-using Serilog;
 using System.IO;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Tapahtumahubi.App;
 
