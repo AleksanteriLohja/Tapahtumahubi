@@ -437,3 +437,6 @@ FodyWeavers.xsd
 # macOS roskat
 .DS_Store
 .AppleDouble
+# Local coverage reports
+coverage/
+
