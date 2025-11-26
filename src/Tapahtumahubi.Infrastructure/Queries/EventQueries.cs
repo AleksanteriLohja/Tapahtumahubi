@@ -22,9 +22,9 @@ public static class EventQueries
         if (string.IsNullOrWhiteSpace(term)) return query;
         term = term.Trim().ToLowerInvariant();
 
-        return query.Where(e =>
-            ((e.Title ?? "").ToLower()).Contains(term) ||
-            ((e.Location ?? "").ToLower()).Contains(term) ||
-            ((e.Description ?? "").ToLower()).Contains(term));
+    return query.Where(e =>
+        ((e.Title ?? "").ToLowerInvariant()).Contains(term) ||
+        ((e.Location ?? "").ToLowerInvariant()).Contains(term) ||
+        ((e.Description ?? "").ToLowerInvariant()).Contains(term));
     }
 }
