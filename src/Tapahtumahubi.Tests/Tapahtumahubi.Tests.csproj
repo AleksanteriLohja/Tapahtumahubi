@@ -1,16 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- Sama TFM kuin MAUI-sovelluksella, jotta ViewModelit ovat viitattavissa -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Testiprojektin paketit -->
   <ItemGroup>
-    <!-- Test runner + Sdk -->
+    <!-- EF Core Sqlite in-memory -testejä varten -->
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.*" />
+
+    <!-- xUnit + testirunneri + kattavuus -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
@@ -22,14 +27,28 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
 
-    <!-- Jos edelleen valittaa xunit.abstractionsista, avaa seuraava rivi (yleensä ei tarvita):
-    <PackageReference Include="xunit.abstractions" Version="2.0.3" />
-    -->
+    <!-- Moq mockeja varten -->
+    <PackageReference Include="Moq" Version="4.*" />
   </ItemGroup>
 
+  <!-- TÄRKEÄ: Resizetizer pois päältä testiprojektista -->
+  <ItemGroup>
+    <!--
+      MAUI:n resizetizer tulee App-projektista transitiivisesti ja
+      aiheuttaa "duplicate appicon" -virheen myös testiprojektissa.
+      Tällä rivillä yliajetaan paketti testiprojektissa niin, että
+      sen buildTransitive-osat (mm. kuvageneraattori) eivät aja.
+    -->
+    <PackageReference Include="Microsoft.Maui.Resizetizer"
+                      Version="8.0.100"
+                      ExcludeAssets="buildTransitive" />
+  </ItemGroup>
+
+  <!-- Projekti-viittaukset -->
   <ItemGroup>
     <ProjectReference Include="..\Tapahtumahubi.Domain\Tapahtumahubi.Domain.csproj" />
     <ProjectReference Include="..\Tapahtumahubi.Infrastructure\Tapahtumahubi.Infrastructure.csproj" />
+    <ProjectReference Include="..\Tapahtumahubi.App\Tapahtumahubi.App.csproj" />
   </ItemGroup>
 
 </Project>

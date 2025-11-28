@@ -1,199 +1,252 @@
 # Tapahtumahubi
 
-![CI](https://github.com/AleksanteriLohja/Tapahtumahubi/actions/workflows/ci.yml/badge.svg)
+Tapahtumahubi on .NET 8 / .NET MAUI -harjoitusprojekti, jonka tarkoituksena on
+mallintaa yksinkertaista tapahtumien ja osallistujien hallintaa. Projekti on
+osa ohjelmistotuotannon kurssia ja toteutettu kerrosarkkitehtuurilla:
 
-C# / .NET MAUI -sovellus pienorganisaatioiden tapahtumien hallintaan.  
-Kurssiprojekti (ET00BP84 – Ohjelmistotuotanto, Savonia AMK, 2025).
+- **Domain** – ydindomain (Event, Participant)
+- **Infrastructure** – tietokanta ja palvelut (EF Core + SQLite)
+- **App** – .NET MAUI -käyttöliittymä
+- **Tests** – yksikkö- ja integraatiotestit (xUnit)
 
----
-
-## Sisältö
-
-- [Stack](#stack)
-- [Kansiorakenne](#kansiorakenne)
-- [Kehitysympäristö](#kehitysympäristö)
-- [Käynnistys (Windows, Debug)](#käynnistys-windows-debug)
-- [Tietokanta & migraatiot](#tietokanta--migraatiot)
-- [Testit](#testit)
-- [CI (GitHub Actions)](#ci-github-actions)
-- [Sovelluksen käyttö](#sovelluksen-käyttö)
-- [Tietomalli](#tietomalli)
-- [Lisenssi](#lisenssi)
+Pääalusta on tällä hetkellä **Windows-työpöytä**. Android/iOS/MacCatalyst
+-targetit ovat olemassa mahdollista jatkokehitystä varten, mutta niitä ei
+ole pakko kääntää/ajaa.
 
 ---
 
-## Stack
+## Päätoiminnot
 
-- .NET 8
-- .NET MAUI (Windows)
-- EF Core + SQLite (paikallinen tiedosto `events.db`)
-- xUnit (yksikkötestit)
+Nykyinen toiminnallisuus keskittyy ydindomainiin ja peruspolkuihin:
+
+- Tapahtumien mallinnus (`Event`)
+- Osallistujien mallinnus (`Participant`)
+- Tietokantakerros EF Coren ja SQLite-tietokannan avulla
+- Tapahtumien listauksen logiikka (`MainPageViewModel`)
+- Uuden tapahtuman luomisen logiikka (`NewEventPageViewModel`)
+- Peruspalvelut tapahtumien ja osallistujien hakemiseen ja tallentamiseen
+- Lokitus virhetilanteissa (`ILogger`)
+
+UI-taso käyttää ViewModel-kerrosta eikä ole suorassa riippuvuudessa
+tietokantaan.
+
+---
+
+## Teknologiat
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/)
+- .NET MAUI (WinUI, `net8.0-windows10.0.19041.0`)
+- Entity Framework Core + SQLite
+- xUnit (yksikkö- ja integraatiotestit)
+- Microsoft.Extensions.Logging
+- GitHub + GitHub Issues / Project -taulu (sprinttien hallinta)
+- Dependabot (päivitysten seurantaan)
 
 ---
 
-## Kansiorakenne
+## Projektirakenne
 
-```txt
-Tapahtumahubi/
-├─ .github/
-│  └─ workflows/
-│     └─ ci.yml                       # GitHub Actions (build + test)
-├─ docs/                               # Projektikortti, vaatimusmäärittely, yms.
-├─ src/
-│  ├─ Tapahtumahubi.App/               # MAUI UI + DI + navigointi (startup)
-│  ├─ Tapahtumahubi.Domain/            # Domain-mallit (Event, Participant)
-│  ├─ Tapahtumahubi.Infrastructure/    # EF Core DbContext + migraatiot
-│  └─ Tapahtumahubi.Tests/             # xUnit-yksikkötestit (Domain)
-├─ .gitignore
-├─ LICENSE
-├─ README.md
-└─ Tapahtumahubi.sln
+```text
+.
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   └── workflows/
+│       └── dependabot.yml
+├── docs/
+│   ├── project-card.md       # Projektikortti
+│   └── vaatimukset.md        # Vaatimusmäärittely
+├── src/
+│   ├── Tapahtumahubi.App/
+│   │   ├── ViewModels/
+│   │   │   ├── BaseViewModel.cs
+│   │   │   ├── MainPageViewModel.cs
+│   │   │   └── NewEventPageViewModel.cs
+│   │   ├── *.xaml / *.xaml.cs (sivut: MainPage, NewEventPage, ParticipantsPage, jne.)
+│   │   └── Tapahtumahubi.App.csproj
+│   ├── Tapahtumahubi.Domain/
+│   │   ├── Event.cs
+│   │   └── Participant.cs
+│   ├── Tapahtumahubi.Infrastructure/
+│   │   ├── AppDbContext.cs
+│   │   ├── AppDbContextSeed.cs
+│   │   ├── DesignTimeDbContextFactory.cs
+│   │   ├── Queries/
+│   │   │   └── EventQueries.cs
+│   │   ├── Services/
+│   │   │   └── ParticipantService.cs
+│   │   └── Migrations/
+│   └── Tapahtumahubi.Tests/
+│       ├── Infrastructure/
+│       │   └── SqliteInMemoryFixture.cs
+│       ├── Integration/
+│       │   ├── EventIntegrationTests.cs
+│       │   └── MigrationAndSeedTests.cs
+│       ├── ViewModels/
+│       │   ├── MainPageViewModelTests.cs
+│       │   └── NewEventPageViewModelTests.cs
+│       ├── EventTests.cs
+│       ├── ParticipantTests.cs
+│       └── Tapahtumahubi.Tests.csproj
+├── coverage.runsettings
+├── .editorconfig
+├── .gitignore
+├── LICENSE
+├── README.md
+└── Tapahtumahubi.sln
 
----
+Arkkitehtuuri
+Domain
+
+Tapahtumahubi.Domain sisältää vain ydindatan:
+
+Event – tapahtuma, jolla on perustiedot (esim. nimi, ajankohta, kuvaus).
+
+Participant – osallistuja, joka voidaan liittää tapahtumiin.
+
+Domain-kerros ei tunne tietokantaa, UI:ta tai infrastruktuuria.
+
+Infrastructure
+
+Tapahtumahubi.Infrastructure vastaa pysyväistallennuksesta:
+
+AppDbContext – EF Core -konteksti.
+
+Migrations – tietokantamigraatiot.
+
+AppDbContextSeed – kehitysdatan alustaminen.
+
+Queries- ja Services-kansiot – domain-rajapintojen toteutukset
+(esim. tapahtumien haku ja osallistujapalvelu).
+
+Integraatiotesteissä käytetään SQLite in-memory -tietokantaa
+(SqliteInMemoryFixture).
+
+App (MAUI)
+
+Tapahtumahubi.App sisältää käyttöliittymän ja ViewModelit:
+
+MainPageViewModel
+
+Load-komento hakee tapahtumalistan palvelusta ja asettaa
+IsBusy / Items -tilat.
+
+NewEventPageViewModel
+
+Save-komento luo uuden tapahtuman palvelun kautta.
+
+Cancel-komento ei tee muutoksia domainiin.
+
+Virhepolut kirjaavat lokiin (ILogger).
+
+ViewModelit ovat testattavissa ilman UI-riippuvuuksia. DI-konfigurointi
+tehdään MauiProgram.cs-tiedostossa.
+
+Tests
+
+Tapahtumahubi.Tests sisältää:
+
+Domain-testit (EventTests, ParticipantTests)
+
+Infrastructure-testit (palvelut ja kyselyt)
+
+Integraatiotestit, joissa tietokantaa ajetaan in-memory SQLite -instanssilla
+
+ViewModel-testit:
+
+MainPageViewModelTests (Load-komento, virhepolut, tilamuutokset)
+
+NewEventPageViewModelTests (Save/Cancel, virhepolut, lokitus)
+
+Testien DoD:
+
+Testit vihreinä
+
+Keskeiset polut katettu
+
+ViewModel-luokille tavoite ≥ 80 % kattavuus tai perusteltu poikkeus
 
 Kehitysympäristö
+Esivaatimukset
 
-Windows 10/11
+Windows 10 (19041) tai uudempi
 
-.NET SDK 8.0
+.NET 8 SDK
 
-Visual Studio 2022 tai VS Code
+(Suositeltu) Visual Studio 2022 tai VS Code + C#-laajennus
 
----
+SQLite-ajurit (EF Core hoitaa käytön koodista)
 
-Käynnistys (Windows, Debug)
+Android/iOS/MacCatalyst -targetit ovat mukana, mutta kurssivaiheessa
+keskitytään Windows-targettiin.
 
-Vaihtoehto A: build + exe
+Projektin kääntäminen ja ajaminen
+Visual Studio / IDE
 
-# 1) Rakenna MAUI Windowsille (Debug, unpackaged)
-dotnet build -c Debug -f net8.0-windows10.0.19041.0 .\src\Tapahtumahubi.App\Tapahtumahubi.App.csproj
+Avaa Tapahtumahubi.sln.
 
-# 2) Aja binaari
-.\src\Tapahtumahubi.App\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\Tapahtumahubi.App.exe
+Aseta Tapahtumahubi.App käynnistysprojektiksi.
 
-Vaihtoehto B: dotnet run
+Valitse targetiksi Windows Machine.
 
-dotnet run -c Debug -f net8.0-windows10.0.19041.0 --project .\src\Tapahtumahubi.App\Tapahtumahubi.App.csproj
+Suorita projekti (Run/Debug).
 
-Huom. Debugissa sovellus ajetaan “unpackaged”-tilassa, mikä helpottaa kehitystä Windowsissa.
+Komentoriviltä (Windows-target)
 
----
+Projektin kääntäminen:
+dotnet build src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
 
-Tietokanta & migraatiot
+Sovelluksen ajaminen:
+dotnet run --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
 
-Tietokanta: SQLite
+Huom: Ratkaisun (Tapahtumahubi.sln) ajaminen dotnet build / dotnet test
+-komennolla voi yrittää kääntää myös Android-targetin, joka vaatii JDK 21
+-version. Windows-targetin ajaminen yllä olevilla komennoilla riittää
+tämänhetkiseen käyttöön.
 
-Oletussijainti:
+Testien ajaminen
 
-%LOCALAPPDATA%\events.db
+Yksikkö- ja integraatiotestit:
+cd src/Tapahtumahubi.Tests
+dotnet test
 
-Sovellus ajaa käynnistyksessä db.Database.Migrate() → puuttuvat migraatiot ajetaan automaattisesti.
+Tällä hetkellä testejä on:
 
----
+Passed: 35
 
-EF Core -työkalut (tarvittaessa):
+Failed: 0
 
-dotnet tool install --global dotnet-ef
-dotnet tool update  --global dotnet-ef
+Skipped: 0
 
----
+Testikattavuus
 
-Migraation luonti (kun skeemaa muutetaan):
+Ratkaisun juuresta löytyy coverage.runsettings, jonka avulla voi generoida
+testikattavuusraportin:
 
-# Suorita repo-juuresta
-dotnet ef migrations add InitialCreate `
-  --project .\src\Tapahtumahubi.Infrastructure `
-  --startup-project .\src\Tapahtumahubi.App `
-  --framework net8.0-windows10.0.19041.0 `
-  --output-dir Migrations
+cd src/Tapahtumahubi.Tests
+dotnet test --settings ..\..\coverage.runsettings
 
----
+Raportti tallentuu TestResults-hakemistoon (tarkka polku riippuu ajosta).
 
-Tietokannan päivittäminen:
+Dokumentaatio
 
-dotnet ef database update `
-  --project .\src\Tapahtumahubi.Infrastructure `
-  --startup-project .\src\Tapahtumahubi.App `
-  --framework net8.0-windows10.0.19041.0
-  
----
+docs/vaatimukset.md – sovelluksen vaatimukset ja toiminnalliset tavoitteet
 
-Testit
-# (Valinnainen) Siivoa testiprojektin build-artefaktit
-Remove-Item .\src\Tapahtumahubi.Tests\bin -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item .\src\Tapahtumahubi.Tests\obj -Recurse -Force -ErrorAction SilentlyContinue
+docs/project-card.md – projektikortti (kurssin vaatima kuvaus)
 
-# Palauta paketit ja suorita testit (Release)
-dotnet restore
-dotnet build .\src\Tapahtumahubi.Tests\Tapahtumahubi.Tests.csproj -c Release
-dotnet test  .\src\Tapahtumahubi.Tests\Tapahtumahubi.Tests.csproj -c Release `
-  --logger "trx;LogFileName=test-results.trx"
+GitHub Issues & Project -taulu – sprintit, issuet ja DoD kullekin tehtävälle
 
+Jatkokehitysideoita
 
-TRX-raportti: src/Tapahtumahubi.Tests/TestResults/test-results.trx
-  
----
+Android-targetin buildin korjaus (JDK 21, mahdollinen mobiilikäyttö)
 
-CI (GitHub Actions)
+Käyttöliittymän täydentäminen (osallistujien hallinta, tarkemmat näkymät)
 
-Työnkulku: .github/workflows/ci.yml
+Hakutoiminnot ja suodatus tapahtumalistaukseen
 
-Käynnistyy push / pull_request haaraan main
+Lisätestit reunatapauksille ja virhetilanteille
 
-Asentaa .NET 8, tekee restore, buildaa Domain, Infrastructure, Tests (MAUI-appia ei ajeta CI:ssä)
+Lokituksen ja virheenkäsittelyn yhtenäistäminen koko sovelluksessa
 
-Ajaa xUnit-testit ja julkaisee raportit artefakteina
+Lisenssi
 
-Status näkyy README:n yläosan badge-kuvakkeessa.
-  
----
-
-Sovelluksen käyttö
-
-Tapahtumien lista: Etusivulla kaikki tapahtumat aikajärjestyksessä. Haku suodattaa otsikon ja paikan perusteella.
-
-Uusi tapahtuma: Uusi tapahtuma → täytä kentät → Tallenna.
-
-Muokkaus/poisto: pyyhkäise listariviltä vasemmalle → Muokkaa tai Poista.
-  
----
-
-Tietomalli
-
-Event
-
-int Id
-
-string Title
-
-DateTime StartTime
-
-string Location
-
-string? Description
-
-int MaxParticipants
-
-List<Participant> Participants
-  
----
-
-Participant
-
-int Id
-
-string Name
-
-string Email
-
-int EventId (FK)
-
-### Debug-seed
-Debug-ajoissa sovellus lisää 2–3 demotapahtumaa, jos tietokanta on tyhjä.
-Toteutus: `AppDbContextSeed.Seed()` (kutsutaan `MauiProgram.cs`issa).
-
-## Lataa release (Windows)
-Viimeisimmät Windows-asennuspaketit (.msix/.msixbundle) löytyvät GitHubin **Releases**-osiosta tai suoraan Actions-artifakteina tagien ajosta.
-
-- Windows 10/11: lataa uusin MSIX, suorita ja hyväksy asennus (tarvittaessa "Sideload apps" on oltava sallittu).
-
+Projektin lisenssi löytyy tiedostosta LICENSE
