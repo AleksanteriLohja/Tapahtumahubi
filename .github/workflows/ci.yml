@@ -15,12 +15,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET (8.x, global.json)
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          global-json-file: global.json
+          dotnet-version: "8.0.x"
 
-      # --- Restore ---
+      # --- Restore (ei MAUI-appia erikseen) ---
       - name: Restore Domain
         run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
@@ -40,25 +40,27 @@ jobs:
       - name: Build Tests (Release)
         run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
 
-      # --- Test + coverage ---
+      # --- Test + Code coverage ---
       - name: Test (xUnit) with coverage
         run: >
-          dotnet test src/Tapahtumahubi.Tests
+          dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
           -c Release
           --no-build
-          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
           --settings coverage.runsettings
           --logger "trx;LogFileName=test-results.trx"
 
+      # --- ReportGenerator ---
       - name: Install ReportGenerator tool
         run: dotnet tool update -g dotnet-reportgenerator-globaltool
 
       - name: Generate coverage report (HTML + summary)
         shell: pwsh
         run: |
-          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
+          reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
           Get-Content .\coverage\Summary.txt
 
+      # --- Enforce coverage gate (>= 80%) ---
       - name: Enforce coverage gate (>= 80%)
         shell: pwsh
         run: |
@@ -82,7 +84,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
 
       - name: Upload coverage artifact
         if: always()
