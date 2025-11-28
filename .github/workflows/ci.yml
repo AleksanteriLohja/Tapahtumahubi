@@ -9,7 +9,7 @@ on:
 jobs:
   build-test:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -20,41 +20,36 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # --- MAUI workload (Android), jotta App-projekti voidaan rakentaa ---
-      - name: Install MAUI Android workload
-        run: dotnet workload install maui-android
-
       # --- Restore ---
       - name: Restore Domain
-        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj /p:CheckEolTargetFramework=false
+        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -p:CI_BUILD=true
 
       - name: Restore Infrastructure
-        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj /p:CheckEolTargetFramework=false
+        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -p:CI_BUILD=true
 
       - name: Restore Tests
-        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj /p:CheckEolTargetFramework=false
+        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -p:CI_BUILD=true
 
       # --- Build ---
       - name: Build Domain (Release)
-        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore /p:CheckEolTargetFramework=false
+        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore -p:CI_BUILD=true
 
       - name: Build Infrastructure (Release)
-        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore /p:CheckEolTargetFramework=false
+        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore -p:CI_BUILD=true
 
       - name: Build Tests (Release)
-        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore /p:CheckEolTargetFramework=false
+        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore -p:CI_BUILD=true
 
-      # --- Test + Code coverage ---
+      # --- Test + coverage ---
       - name: Test (xUnit) with coverage
         run: >
-          dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
+          dotnet test src/Tapahtumahubi.Tests
           -c Release
           --no-build
-          --results-directory TestResults
-          --settings coverage.runsettings
           --collect:"XPlat Code Coverage"
+          --settings coverage.runsettings
           --logger "trx;LogFileName=test-results.trx"
-          /p:CheckEolTargetFramework=false
+          -p:CI_BUILD=true
 
       # --- ReportGenerator ---
       - name: Install ReportGenerator tool
@@ -63,14 +58,13 @@ jobs:
       - name: Generate coverage report (HTML + summary)
         shell: pwsh
         run: |
-          reportgenerator -reports:TestResults/**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
+          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
           if (Test-Path .\coverage\Summary.txt) {
             Get-Content .\coverage\Summary.txt
           } else {
-            Write-Host "Summary.txt ei löytynyt (todennäköisesti testit epäonnistuivat ennen kattavuuden luontia)."
+            Write-Host "Ei Summary.txt-tiedostoa (todennäköisesti testit eivät tuottaneet coveragea)."
           }
 
-      # --- Enforce coverage gate (>= 80%) ---
       - name: Enforce coverage gate (>= 80%)
         if: success()
         shell: pwsh
@@ -79,7 +73,6 @@ jobs:
             Write-Host "coverage/Summary.txt ei löytynyt, ohitetaan kattavuusrajan tarkistus."
             exit 0
           }
-
           $summary = Get-Content coverage\Summary.txt -Raw
           if ($summary -match 'Line coverage:\s+([0-9\.]+)') {
             [double]$line = $Matches[1]
@@ -87,7 +80,6 @@ jobs:
           } else {
             throw "Line coverage not found in Summary.txt"
           }
-
           if ($line -lt 80.0) {
             Write-Error "Coverage gate failed: $line% < 80%"
             exit 1
@@ -101,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: TestResults/**/*.trx
+          path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
           if-no-files-found: warn
 
       - name: Upload coverage artifact
