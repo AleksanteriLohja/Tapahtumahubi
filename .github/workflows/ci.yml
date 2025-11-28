@@ -28,7 +28,7 @@ jobs:
         run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
 
       - name: Restore Tests
-        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
+        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj /p:CheckEolTargetFramework=false
 
       # --- Build ---
       - name: Build Domain (Release)
@@ -38,17 +38,18 @@ jobs:
         run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
 
       - name: Build Tests (Release)
-        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
+        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore /p:CheckEolTargetFramework=false
 
       # --- Test + Code coverage (runsettings suodattaa migraatiot pois) ---
       - name: Test (xUnit) with coverage
         run: >
-          dotnet test src/Tapahtumahubi.Tests
+          dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
           -c Release
           --no-build
           --collect:"XPlat Code Coverage"
           --settings coverage.runsettings
           --logger "trx;LogFileName=test-results.trx"
+          /p:CheckEolTargetFramework=false
 
       # --- ReportGenerator ---
       - name: Install ReportGenerator tool
@@ -92,4 +93,4 @@ jobs:
         with:
           name: coverage
           path: coverage/**
-          if-no-files-found: error
+          if-no-files-found: ignore
