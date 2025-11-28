@@ -18,9 +18,9 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: "8.0.x"
 
-      # --- Restore (ei MAUI-appia CI:ssä) ---
+      # --- Restore (ei MAUI-appia CI-buildiin) ---
       - name: Restore Domain
         run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
@@ -30,57 +30,66 @@ jobs:
       - name: Restore Tests
         run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
 
-      # --- Build (Release) ---
-      - name: Build Domain
+      # --- Build ---
+      - name: Build Domain (Release)
         run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
 
-      - name: Build Infrastructure
+      - name: Build Infrastructure (Release)
         run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
 
-      - name: Build Tests
+      - name: Build Tests (Release)
         run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
 
-      # --- Test + Coverage ---
+      # --- Test + Code coverage (runsettings suodattaa migraatiot pois) ---
       - name: Test (xUnit) with coverage
-        run: dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-build --collect:"XPlat Code Coverage"
+        run: >
+          dotnet test src/Tapahtumahubi.Tests
+          -c Release
+          --no-build
+          --collect:"XPlat Code Coverage"
+          --settings coverage.runsettings
+          --logger "trx;LogFileName=test-results.trx"
 
+      # --- ReportGenerator ---
       - name: Install ReportGenerator tool
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+        run: dotnet tool update -g dotnet-reportgenerator-globaltool
 
       - name: Generate coverage report (HTML + summary)
         shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          $reports = Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | % { $_.FullName }
-          if (-not $reports) {
-            Write-Host "No coverage files found."
-            exit 1
-          }
-          reportgenerator -reports:$($reports -join ';') -targetdir:coverage -reporttypes:"Html;TextSummary"
-          Write-Host "=== Coverage summary ==="
-          Get-Content coverage\Summary.txt | Write-Host
+          reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
+          Get-Content .\coverage\Summary.txt
 
-      - name: Enforce coverage gate (soft)
-        continue-on-error: true
+      # --- Enforce coverage gate (>= 80%) ---
+      - name: Enforce coverage gate (>= 80%)
         shell: pwsh
         run: |
           $summary = Get-Content coverage\Summary.txt -Raw
-              if ($summary -match 'Line coverage:\s+([\d\.]+)\s*%') {
-                $cov = [double]$Matches[1]
-                $threshold = 70.0
-                if ($cov -lt $threshold) {
-                  Write-Warning ("Coverage gate WARNING: {0}% < {1}%" -f $cov, $threshold)
-                  exit 0
-                }
-                Write-Host ("Coverage gate OK: {0}% >= {1}%" -f $cov, $threshold)
-              } else {
-                Write-Warning 'Could not parse coverage\Summary.txt'
-              }
+          if ($summary -match 'Line coverage:\s+([0-9\.]+)') {
+            [double]$line = $Matches[1]
+            Write-Host "Line coverage: $line %"
+          } else {
+            throw "Line coverage not found in Summary.txt"
+          }
+          if ($line -lt 80.0) {
+            Write-Error "Coverage gate failed: $line% < 80%"
+            exit 1
+          } else {
+            Write-Host "Coverage OK: $line% >= 80%"
+          }
 
-      # --- Artifact: coverage HTML ---
+      # --- Artefaktit ---
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
+
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html
-          path: coverage/
+          name: coverage
+          path: coverage/**
+          if-no-files-found: error
