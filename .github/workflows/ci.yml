@@ -15,12 +15,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET (8.x, global.json)
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          global-json-file: global.json
 
-      # --- Restore (ei MAUI-appia CI-buildiin) ---
+      # --- Restore ---
       - name: Restore Domain
         run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
@@ -28,7 +28,7 @@ jobs:
         run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
 
       - name: Restore Tests
-        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj /p:CheckEolTargetFramework=false
+        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
 
       # --- Build ---
       - name: Build Domain (Release)
@@ -38,20 +38,18 @@ jobs:
         run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
 
       - name: Build Tests (Release)
-        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore /p:CheckEolTargetFramework=false
+        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore
 
-      # --- Test + Code coverage (runsettings suodattaa migraatiot pois) ---
+      # --- Test + coverage ---
       - name: Test (xUnit) with coverage
         run: >
-          dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
+          dotnet test src/Tapahtumahubi.Tests
           -c Release
           --no-build
           --collect:"XPlat Code Coverage"
           --settings coverage.runsettings
           --logger "trx;LogFileName=test-results.trx"
-          /p:CheckEolTargetFramework=false
 
-      # --- ReportGenerator ---
       - name: Install ReportGenerator tool
         run: dotnet tool update -g dotnet-reportgenerator-globaltool
 
@@ -61,7 +59,6 @@ jobs:
           reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
           Get-Content .\coverage\Summary.txt
 
-      # --- Enforce coverage gate (>= 80%) ---
       - name: Enforce coverage gate (>= 80%)
         shell: pwsh
         run: |
@@ -93,4 +90,4 @@ jobs:
         with:
           name: coverage
           path: coverage/**
-          if-no-files-found: ignore
+          if-no-files-found: error
