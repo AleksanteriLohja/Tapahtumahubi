@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Tapahtumahubi.Domain;
 
 namespace Tapahtumahubi.Infrastructure;
@@ -8,45 +8,38 @@ namespace Tapahtumahubi.Infrastructure;
 public static class AppDbContextSeed
 {
     /// <summary>
-    /// Lisää demotapahtumat vain, jos Events-taulu on tyhjä.
-    /// Tarkoitettu DEBUG-käyttöön.
+    /// Idempotentti alustus. Turvallista ajaa useita kertoja.
     /// </summary>
-    public static void Seed(AppDbContext db)
+    public static async Task SeedAsync(AppDbContext db)
     {
-        if (db.Events.Any())
-            return;
+        // Luodaan tietokanta, jos puuttuu (SQLite in-memory persistent -yhteys huomioitu)
+        await db.Database.EnsureCreatedAsync();
 
-        var now = DateTime.Now;
-
-        var demo = new List<Event>
+        // Esimerkkitapahtumat vain jos kantaan ei ole vielä seedattu.
+        if (!db.Events.Any())
         {
-            new Event
-            {
-                Title = "Demo: Kehittäjäpäivä",
-                Location = "Helsinki",
-                StartTime = now.AddDays(1).Date.AddHours(10),
-                Description = "Esimerkkitapahtuma – luotu seedistä.",
-                MaxParticipants = 50
-            },
-            new Event
-            {
-                Title = "Demo: Tietoturva-workshop",
-                Location = "Turku",
-                StartTime = now.AddDays(3).Date.AddHours(13),
-                Description = "Käytännön harjoituksia ja esityksiä.",
-                MaxParticipants = 30
-            },
-            new Event
-            {
-                Title = "Demo: Retrospektiivi",
-                Location = "Kuopio",
-                StartTime = now.AddDays(-1).Date.AddHours(15), // mennyt → testaa järjestystä
-                Description = "Mennyt tapahtuma – testaa järjestystä.",
-                MaxParticipants = 20
-            }
-        };
+            var now = DateTime.UtcNow;
 
-        db.Events.AddRange(demo);
-        db.SaveChanges();
+            db.Events.AddRange(
+                new Event
+                {
+                    Title = "Tiimikokous",
+                    Location = "Teams",
+                    StartTime = now.AddDays(1),
+                    Description = "Sprintin tilannekatsaus",
+                    MaxParticipants = 20
+                },
+                new Event
+                {
+                    Title = "Koodikatselmointi",
+                    Location = "Toimisto",
+                    StartTime = now.AddDays(2),
+                    Description = "Domain + Infrastructure",
+                    MaxParticipants = 10
+                }
+            );
+
+            await db.SaveChangesAsync();
+        }
     }
 }
