@@ -1,14 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Testit eivät tarvitse Windows- tai MAUI-targetteja -->
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-
-    <!-- Jos joskus ajetaan Windows-TFM:llä, estä MSIX-paketointi -->
+    <EnableMsixTooling>false</EnableMsixTooling>
     <WindowsPackageType>None</WindowsPackageType>
+    <DefineConstants Condition="'$(CI_BUILD)'=='true'">$(DefineConstants);CI_BUILD</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,7 +34,9 @@
     <ProjectReference Include="..\Tapahtumahubi.Infrastructure\Tapahtumahubi.Infrastructure.csproj" />
   </ItemGroup>
 
-  <!-- Linkitetään vain ViewModel-lähteet, ei koko MAUI-projektia -->
+  <!-- Linkataan vain ViewModel-lähteet App-projektista.
+       MAUI-stubit (MauiStubs/MauiStubs.cs) poimitaan automaattisesti,
+       koska ne ovat tämän projektin kansiossa. -->
   <ItemGroup>
     <Compile Include="..\Tapahtumahubi.App\ViewModels\*.cs"
              Link="ViewModels\%(Filename)%(Extension)" />
