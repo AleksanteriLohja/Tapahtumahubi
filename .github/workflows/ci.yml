@@ -6,48 +6,46 @@ on:
   pull_request:
     branches: [ "main" ]
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-test:
     runs-on: windows-latest
     timeout-minutes: 20
 
     env:
-      # Yhtenäinen, hiljainen ja toistettava CLI-käytös
-      DOTNET_NOLOGO: true
-      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-      DOTNET_CLI_TELEMETRY_OPTOUT: 1
-      # Kerrotaan projekteille että ollaan CI:ssä
       CI_BUILD: "true"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-          cache: true
+          cache: false            # poistaa "Dependencies lock file is not found" -rivin
 
-      # Varmuuden vuoksi, jos App.csproj evaluoituu jossain vaiheessa
       - name: Install MAUI Windows workload
         run: dotnet workload install maui-windows --ignore-failed-sources
 
       # --- Restore ---
-      - run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
-      - run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
-      - run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -p:CI_BUILD=true
+      - name: Restore Domain
+        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
-      # --- Build (vain tarvittavat projektit) ---
-      - run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
-      - run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
-      - run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore -p:CI_BUILD=true
+      - name: Restore Infrastructure
+        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
+
+      - name: Restore Tests (CI build)
+        run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -p:CI_BUILD=true
+
+      # --- Build ---
+      - name: Build Domain (Release)
+        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
+
+      - name: Build Infrastructure (Release)
+        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
+
+      - name: Build Tests (Release, CI build)
+        run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore -p:CI_BUILD=true
 
       # --- Test + Code coverage ---
       - name: Test (xUnit) with coverage
@@ -74,7 +72,7 @@ jobs:
             Write-Host "No coverage summary generated."
           }
 
-      # --- (valinnainen) coverage gate ---
+      # --- Enforce coverage gate (>= 80%) ---
       - name: Enforce coverage gate (>= 80%)
         shell: pwsh
         run: |
@@ -102,9 +100,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: src/Tapahtumahubi.Tests/TestResults/**/*.trx
+          path: |
+            src/Tapahtumahubi.Tests/TestResults/test-results.trx
+            src/Tapahtumahubi.Tests/TestResults/**/*.trx
           if-no-files-found: warn
-          retention-days: 7
 
       - name: Upload coverage artifact
         if: always()
@@ -113,4 +112,3 @@ jobs:
           name: coverage
           path: coverage/**
           if-no-files-found: warn
-          retention-days: 7
