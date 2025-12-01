@@ -53,7 +53,7 @@ jobs:
         run: Get-ChildItem "${{ env.ARTIFACTS_DIR }}" -Recurse | Format-Table -Auto
 
       - name: Upload MSIX artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: msix-${{ github.run_number }}
           path: |
