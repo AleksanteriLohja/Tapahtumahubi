@@ -11,6 +11,10 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
 
+    env:
+      # Kerrotaan projekteille että ollaan CI:ssä
+      CI_BUILD: "true"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,30 +24,35 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      # --- Asenna vain Windowsille tarvittava MAUI-workload ---
+      # Tämä poistaa NETSDK1147-virheen jos App.csproj evaluoituu jossain kohtaa.
+      - name: Install MAUI Windows workload
+        run: dotnet workload install maui-windows --ignore-failed-sources
+
       # --- Restore ---
       - name: Restore Domain
-        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -p:CI_BUILD=true
+        run: dotnet restore src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj
 
       - name: Restore Infrastructure
-        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -p:CI_BUILD=true
+        run: dotnet restore src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj
 
-      - name: Restore Tests
+      - name: Restore Tests (CI build)
         run: dotnet restore src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -p:CI_BUILD=true
 
       # --- Build ---
       - name: Build Domain (Release)
-        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore -p:CI_BUILD=true
+        run: dotnet build src/Tapahtumahubi.Domain/Tapahtumahubi.Domain.csproj -c Release --no-restore
 
       - name: Build Infrastructure (Release)
-        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore -p:CI_BUILD=true
+        run: dotnet build src/Tapahtumahubi.Infrastructure/Tapahtumahubi.Infrastructure.csproj -c Release --no-restore
 
-      - name: Build Tests (Release)
+      - name: Build Tests (Release, CI build)
         run: dotnet build src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj -c Release --no-restore -p:CI_BUILD=true
 
-      # --- Test + coverage ---
+      # --- Test + Code coverage ---
       - name: Test (xUnit) with coverage
         run: >
-          dotnet test src/Tapahtumahubi.Tests
+          dotnet test src/Tapahtumahubi.Tests/Tapahtumahubi.Tests.csproj
           -c Release
           --no-build
           --collect:"XPlat Code Coverage"
@@ -59,18 +68,18 @@ jobs:
         shell: pwsh
         run: |
           reportgenerator -reports:**/coverage.cobertura.xml -targetdir:coverage -reporttypes:"Html;TextSummary"
-          if (Test-Path .\coverage\Summary.txt) {
+          if (Test-Path "coverage/Summary.txt") {
             Get-Content .\coverage\Summary.txt
           } else {
-            Write-Host "Ei Summary.txt-tiedostoa (todennäköisesti testit eivät tuottaneet coveragea)."
+            Write-Host "No coverage summary generated."
           }
 
+      # --- Enforce coverage gate (>= 80%) ---
       - name: Enforce coverage gate (>= 80%)
-        if: success()
         shell: pwsh
         run: |
-          if (-not (Test-Path coverage\Summary.txt)) {
-            Write-Host "coverage/Summary.txt ei löytynyt, ohitetaan kattavuusrajan tarkistus."
+          if (-Not (Test-Path "coverage/Summary.txt")) {
+            Write-Host "No coverage summary found, skipping coverage gate."
             exit 0
           }
           $summary = Get-Content coverage\Summary.txt -Raw
