@@ -1,38 +1,79 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     x:Class="Tapahtumahubi.App.NewEventPage"
-    x:Name="Root"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Uusi / Muokkaa tapahtumaa"
-    BackgroundColor="#E5D9F2">
+    xmlns:vm="clr-namespace:Tapahtumahubi.App.ViewModels"
+    Title="Uusi / Muokkaa tapahtumaa">
+
+    <!-- Huom: Tab-järjestys seuraa elementtien järjestystä alla -->
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+        <Grid Padding="16" ColumnDefinitions="Auto,*"
+              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
-            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="20" TextColor="#1E293B" />
+            <!-- Otsikko -->
+            <Label Grid.Row="0" Grid.Column="0" Text="Otsikko" VerticalTextAlignment="Center" />
+            <Entry  x:Name="TitleEntry"
+                    Grid.Row="0" Grid.Column="1"
+                    Text="{Binding TitleText, Mode=TwoWay}"
+                    ReturnType="Next"
+                    Completed="OnTitleCompleted" />
 
-            <Entry Placeholder="Otsikko"       Text="{Binding TitleText}"   BackgroundColor="#F5EFFF" TextColor="#1E293B" PlaceholderColor="#798394"/>
-            <Entry Placeholder="Paikka"        Text="{Binding Location}"    BackgroundColor="#F5EFFF" TextColor="#1E293B" PlaceholderColor="#798394"/>
+            <!-- Sijainti -->
+            <Label Grid.Row="1" Grid.Column="0" Text="Sijainti" VerticalTextAlignment="Center" />
+            <Entry  x:Name="LocationEntry"
+                    Grid.Row="1" Grid.Column="1"
+                    Text="{Binding Location, Mode=TwoWay}"
+                    ReturnType="Next"
+                    Completed="OnLocationCompleted" />
 
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,*" ColumnSpacing="30">
-                <Label Text="Valitse päivämäärä:" Grid.Column="1" TextColor="#1E293B" VerticalOptions="Center" HorizontalOptions="Center"/>
-                <DatePicker Date="{Binding EventDate}" Grid.Column="2" BackgroundColor="#F5EFFF" TextColor="#1E293B"/>
-                <Label Text="Valitse aika" Grid.Column="3" TextColor="#1E293B" VerticalOptions="Center" HorizontalOptions="Center"/>
-                <TimePicker Time="{Binding EventTime}" Grid.Column="4" BackgroundColor="#F5EFFF" TextColor="#1E293B"/>
+            <!-- Päivä -->
+            <Label Grid.Row="2" Grid.Column="0" Text="Päivä" VerticalTextAlignment="Center" />
+            <DatePicker x:Name="DatePickerControl"
+                        Grid.Row="2" Grid.Column="1"
+                        Date="{Binding EventDate, Mode=TwoWay}" />
+
+            <!-- Kellonaika -->
+            <Label Grid.Row="3" Grid.Column="0" Text="Kellonaika" VerticalTextAlignment="Center" />
+            <TimePicker x:Name="TimePickerControl"
+                        Grid.Row="3" Grid.Column="1"
+                        Time="{Binding EventTime, Mode=TwoWay}" />
+
+            <!-- Kuvaus -->
+            <Label Grid.Row="4" Grid.Column="0" Text="Kuvaus" VerticalTextAlignment="Start" />
+            <Editor x:Name="DescriptionEditor"
+                    Grid.Row="4" Grid.Column="1"
+                    AutoSize="TextChanges"
+                    HeightRequest="100"
+                    Text="{Binding Description, Mode=TwoWay}" />
+
+            <!-- Max osallistujat -->
+            <Label Grid.Row="5" Grid.Column="0" Text="Maks. osallistujat" VerticalTextAlignment="Center" />
+            <Entry  x:Name="MaxParticipantsEntry"
+                    Grid.Row="5" Grid.Column="1"
+                    Text="{Binding MaxParticipants, Mode=TwoWay}"
+                    Keyboard="Numeric"
+                    ReturnType="Next"
+                    Completed="OnMaxParticipantsCompleted" />
+
+            <!-- Info/virheilmoitukset (valinnainen paikka) -->
+            <Label Grid.Row="6" Grid.ColumnSpan="2"
+                   Margin="0,8,0,0"
+                   TextColor="{DynamicResource SecondaryTextColor}" />
+
+            <!-- Napit -->
+            <Grid Grid.Row="7" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto,Auto" Margin="0,12,0,0">
+                <Label Grid.Column="0" />
+                <Button x:Name="CancelButton"
+                        Grid.Column="1"
+                        Text="Peruuta"
+                        Command="{Binding CancelCommand}" />
+                <Button x:Name="SaveButton"
+                        Grid.Column="2"
+                        Text="Tallenna"
+                        Command="{Binding SaveCommand}" />
             </Grid>
-
-            <Editor Placeholder="Kuvaus" Text="{Binding Description}" AutoSize="TextChanges"
-                    TextColor="#1E293B" BackgroundColor="#F5EFFF" PlaceholderColor="#798394"/>
-
-            <Entry Placeholder="Maks. osallistujat" Text="{Binding MaxParticipants}" Keyboard="Numeric"
-                   TextColor="#1E293B" BackgroundColor="#F5EFFF" PlaceholderColor="#798394"/>
-
-            <HorizontalStackLayout Spacing="12">
-                <Button Text="Tallenna" Command="{Binding SaveCommand}"   TextColor="#1E293B" BackgroundColor="#A294F9"/>
-                <Button Text="Peruuta" Command="{Binding CancelCommand}"  TextColor="White"  BackgroundColor="IndianRed"/>
-            </HorizontalStackLayout>
-
-        </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 </ContentPage>

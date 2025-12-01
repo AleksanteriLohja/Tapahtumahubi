@@ -1,27 +1,31 @@
-using Tapahtumahubi.App.ViewModels;
+using System;
+using Microsoft.Maui.Controls;
 
-namespace Tapahtumahubi.App;
-
-public partial class NewEventPage : ContentPage, IQueryAttributable
+namespace Tapahtumahubi.App
 {
-    private readonly NewEventPageViewModel _vm;
-
-    public NewEventPage(NewEventPageViewModel vm)
+    public partial class NewEventPage : ContentPage
     {
-        InitializeComponent();
-        _vm = vm;
-        BindingContext = _vm;
-    }
+        public NewEventPage()
+        {
+            InitializeComponent();
+        }
 
-    public void ApplyQueryAttributes(IDictionary<string, object> query)
-    {
-        if (query.TryGetValue("EventId", out var v) && v is int id)
-            _vm.SetEditingId(id);
-    }
+        // Enter Title -> Location
+        private void OnTitleCompleted(object? sender, EventArgs e)
+        {
+            LocationEntry?.Focus();
+        }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        await _vm.InitializeAsync();
+        // Enter Location -> Date
+        private void OnLocationCompleted(object? sender, EventArgs e)
+        {
+            DatePickerControl?.Focus();
+        }
+
+        // Enter MaxParticipants -> Save
+        private void OnMaxParticipantsCompleted(object? sender, EventArgs e)
+        {
+            SaveButton?.Focus();
+        }
     }
 }

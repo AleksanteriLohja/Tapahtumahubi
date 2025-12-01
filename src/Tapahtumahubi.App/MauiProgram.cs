@@ -1,6 +1,9 @@
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using Tapahtumahubi.Infrastructure;
+using Tapahtumahubi.App.ViewModels;
 
 namespace Tapahtumahubi.App;
 
@@ -42,7 +45,20 @@ public static class MauiProgram
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(dispose: true);
 
-        // …palvelurekisteröinnit jos tarvitset (DbContext, Services, jne.)
+        // ---- Palvelut / DI ----
+        // SQLite-tietokanta sovelluksen AppData-hakemistoon
+        Directory.CreateDirectory(baseDir);
+        var dbPath = Path.Combine(baseDir, "app.db");
+        builder.Services.AddDbContextFactory<AppDbContext>(opt =>
+        {
+            opt.UseSqlite($"Data Source={dbPath}");
+        });
+
+        // Sivut ja VM:t (lisätty Kalenteri)
+        builder.Services.AddTransient<CalendarPage>();
+        builder.Services.AddTransient<CalendarPageViewModel>();
+
+        // (Jos käytät DI:tä muille sivuille/vm:ille, rekisteröi nekin tähän.)
 
         return builder.Build();
     }

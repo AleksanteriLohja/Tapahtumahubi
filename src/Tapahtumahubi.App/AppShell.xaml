@@ -5,11 +5,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Tapahtumahubi.App">
 
+    <!-- Tabit: Tapahtumat & Kalenteri -->
     <TabBar>
         <ShellContent
             Title="Tapahtumat"
             Route="MainPage"
             ContentTemplate="{DataTemplate local:MainPage}" />
-    </TabBar>
 
+        <ShellContent
+            Title="Kalenteri"
+            Route="CalendarPage"
+            ContentTemplate="{DataTemplate local:CalendarPage}" />
+    </TabBar>
 </Shell>

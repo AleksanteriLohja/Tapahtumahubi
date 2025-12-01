@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Tapahtumahubi.App.CalendarPage"
+             Title="Kalenteri">
+    <ContentPage.Content>
+        <Grid RowDefinitions="Auto,*" Padding="16">
+            <StackLayout Orientation="Horizontal" Spacing="12">
+                <Button Text="Tänään" Command="{Binding TodayCommand}" />
+                <DatePicker Date="{Binding SelectedDate}" />
+            </StackLayout>
+
+            <CollectionView Grid.Row="1"
+                            ItemsSource="{Binding Days}"
+                            IsGrouped="True">
+                <CollectionView.GroupHeaderTemplate>
+                    <DataTemplate>
+                        <Grid Padding="4,8">
+                            <Label Text="{Binding DateString}" FontAttributes="Bold" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.GroupHeaderTemplate>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="8" ColumnDefinitions="Auto,*">
+                            <Label Text="{Binding StartTime, StringFormat='{}{0:HH\\:mm}'}" />
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="{Binding Title}" FontAttributes="Bold" />
+                                <Label Text="{Binding Location}" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

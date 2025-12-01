@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Maui.Controls; // Application & Shell
 using Tapahtumahubi.Domain;
 using Tapahtumahubi.Infrastructure;
 
@@ -17,6 +18,10 @@ public partial class NewEventPageViewModel : BaseViewModel
     [ObservableProperty] private TimeSpan eventTime = new(18, 0, 0);
     [ObservableProperty] private string? description;
     [ObservableProperty] private int maxParticipants = 50;
+
+    private const int TitleMax = 200;
+    private const int LocationMax = 200;
+    private const int MaxParticipantsUpper = 1000;
 
     public bool IsEdit => Id > 0;
 
@@ -44,23 +49,45 @@ public partial class NewEventPageViewModel : BaseViewModel
         MaxParticipants = ev.MaxParticipants;
     }
 
+    private List<string> Validate()
+    {
+        var errors = new List<string>();
+
+        if (string.IsNullOrWhiteSpace(TitleText))
+            errors.Add("Otsikko on pakollinen.");
+        if ((TitleText?.Length ?? 0) > TitleMax)
+            errors.Add($"Otsikon enimmäispituus on {TitleMax} merkkiä.");
+        if ((Location?.Length ?? 0) > LocationMax)
+            errors.Add($"Sijainnin enimmäispituus on {LocationMax} merkkiä.");
+        if (MaxParticipants < 1)
+            errors.Add("Osallistujien lukumäärän on oltava vähintään 1.");
+        if (MaxParticipants > MaxParticipantsUpper)
+            errors.Add($"Osallistujien maksimimäärä on {MaxParticipantsUpper}.");
+
+        var start = EventDate.Date + EventTime;
+        if (start < DateTime.Now.AddMinutes(-1))
+            errors.Add("Tapahtuma ei voi olla menneisyydessä.");
+
+        return errors;
+    }
+
+    // Yksipainikkeinen info/virheilmoitus: DisplayAlert(title, message, cancel) -> Task
+    private static Task Alert(string title, string msg, string ok = "OK") =>
+        (Application.Current?.MainPage != null
+            ? Application.Current.MainPage.DisplayAlert(title, msg, ok)
+            : Task.CompletedTask);
+
     [RelayCommand]
     private async Task SaveAsync()
     {
-        var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(TitleText)) errors.Add("Otsikko on pakollinen");
-        if ((TitleText?.Length ?? 0) > 200) errors.Add("Otsikon enimmäispituus on 200 merkkiä");
-        if ((Location?.Length ?? 0) > 200) errors.Add("Sijainnin enimmäispituus on 200 merkkiä");
-        if (MaxParticipants < 1) errors.Add("Osallistujien lukumäärän on oltava vähintään 1");
-
+        var errors = Validate();
         if (errors.Count > 0)
         {
-            await Shell.Current.DisplayAlert("Virhe", string.Join("\n", errors), "OK");
+            await Alert("Virhe", string.Join("\n", errors));
             return;
         }
 
         var start = EventDate.Date + EventTime;
-
         using var db = await _dbFactory.CreateDbContextAsync();
 
         if (IsEdit)
@@ -68,9 +95,10 @@ public partial class NewEventPageViewModel : BaseViewModel
             var toUpdate = await db.Events.FirstOrDefaultAsync(x => x.Id == Id);
             if (toUpdate is null)
             {
-                await Shell.Current.DisplayAlert("Virhe", "Tapahtumaa ei löytynyt muokattavaksi.", "OK");
+                await Alert("Virhe", "Tapahtumaa ei löytynyt muokattavaksi.");
                 return;
             }
+
             toUpdate.Title = TitleText!.Trim();
             toUpdate.Location = (Location ?? "").Trim();
             toUpdate.StartTime = start;
