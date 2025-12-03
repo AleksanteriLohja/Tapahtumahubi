@@ -1,19 +1,20 @@
 using Tapahtumahubi.App.ViewModels;
 
-namespace Tapahtumahubi.App;
-
-public partial class CalendarPage : ContentPage
+namespace Tapahtumahubi.App
 {
-    public CalendarPage(CalendarPageViewModel vm)
+    public partial class CalendarPage : ContentPage
     {
-        InitializeComponent();
-        BindingContext = vm;
-    }
+        public CalendarPage()
+        {
+            InitializeComponent();
+            BindingContext = ServiceHelper.GetRequiredService<CalendarPageViewModel>();
+        }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        if (BindingContext is CalendarPageViewModel vm)
-            await vm.InitializeAsync();
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            if (BindingContext is CalendarPageViewModel vm)
+                await vm.InitializeAsync();
+        }
     }
 }

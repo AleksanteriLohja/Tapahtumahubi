@@ -17,12 +17,17 @@ namespace Tapahtumahubi.Infrastructure
 
     public class ParticipantService : IParticipantService
     {
-        private readonly AppDbContext _db;
-        public ParticipantService(AppDbContext db) => _db = db;
+        private readonly IDbContextFactory<AppDbContext> _factory;
+
+        public ParticipantService(IDbContextFactory<AppDbContext> factory)
+        {
+            _factory = factory;
+        }
 
         public async Task<List<Participant>> ListByEventAsync(int eventId)
         {
-            return await _db.Participants
+            using var db = await _factory.CreateDbContextAsync();
+            return await db.Participants
                 .AsNoTracking()
                 .Where(p => p.EventId == eventId)
                 .OrderBy(p => p.Name)
@@ -31,7 +36,9 @@ namespace Tapahtumahubi.Infrastructure
 
         public async Task<Participant> AddAsync(int eventId, string name, string email)
         {
-            var ev = await _db.Events
+            using var db = await _factory.CreateDbContextAsync();
+
+            var ev = await db.Events
                 .Include(e => e.Participants)
                 .SingleOrDefaultAsync(e => e.Id == eventId)
                 ?? throw new InvalidOperationException("Tapahtumaa ei löytynyt.");
@@ -39,7 +46,8 @@ namespace Tapahtumahubi.Infrastructure
             if (ev.Participants.Count >= ev.MaxParticipants)
                 throw new InvalidOperationException("Tapahtuma on täynnä.");
 
-            var duplicate = await _db.Participants.AnyAsync(x => x.EventId == eventId && x.Email == email);
+            var duplicate = await db.Participants
+                .AnyAsync(x => x.EventId == eventId && x.Email == email);
             if (duplicate)
                 throw new InvalidOperationException("Sähköposti on jo ilmoitettu tähän tapahtumaan.");
 
@@ -47,14 +55,16 @@ namespace Tapahtumahubi.Infrastructure
             if (!p.Validate(out var errors))
                 throw new InvalidOperationException(string.Join("; ", errors));
 
-            _db.Participants.Add(p);
-            await _db.SaveChangesAsync();
+            db.Participants.Add(p);
+            await db.SaveChangesAsync();
             return p;
         }
 
         public async Task UpdateAsync(int id, string name, string email)
         {
-            var p = await _db.Participants.FindAsync(id)
+            using var db = await _factory.CreateDbContextAsync();
+
+            var p = await db.Participants.FindAsync(id)
                 ?? throw new InvalidOperationException("Osallistujaa ei löytynyt.");
 
             p.Name = name;
@@ -63,21 +73,23 @@ namespace Tapahtumahubi.Infrastructure
             if (!p.Validate(out var errors))
                 throw new InvalidOperationException(string.Join("; ", errors));
 
-            var dupe = await _db.Participants
+            var dupe = await db.Participants
                 .AnyAsync(x => x.Id != id && x.EventId == p.EventId && x.Email == p.Email);
             if (dupe)
                 throw new InvalidOperationException("Sähköposti on jo ilmoitettu tähän tapahtumaan.");
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var p = await _db.Participants.FindAsync(id)
+            using var db = await _factory.CreateDbContextAsync();
+
+            var p = await db.Participants.FindAsync(id)
                 ?? throw new InvalidOperationException("Osallistujaa ei löytynyt.");
 
-            _db.Participants.Remove(p);
-            await _db.SaveChangesAsync();
+            db.Participants.Remove(p);
+            await db.SaveChangesAsync();
         }
     }
 }

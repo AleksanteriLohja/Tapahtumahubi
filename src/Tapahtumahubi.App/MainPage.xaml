@@ -7,7 +7,9 @@
     Title="Tapahtumat"
     BackgroundColor="#E5D9F2">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="16" RowSpacing="12">
+    <Grid RowDefinitions="Auto,*,Auto"
+            Padding="16"
+            RowSpacing="12">
 
         <SearchBar
             Placeholder="Hae nimellä tai paikalla"
@@ -15,7 +17,7 @@
             Grid.Row="0"
             TextColor="#1E293B"
             BackgroundColor="#F5EFFF"
-            PlaceholderColor="#798394" />
+            PlaceholderColor="#798394"/>
 
         <CollectionView
             ItemsSource="{Binding Events}"
@@ -26,29 +28,46 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <Frame Padding="12" Margin="0,6" HasShadow="True" BackgroundColor="#F5EFFF">
-                            <VerticalStackLayout Spacing="6" BackgroundColor="#F5EFFF">
-                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="#1E293B" />
-                                <Label Text="{Binding StartTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" TextColor="#1E293B" />
-                                <Label Text="{Binding Location}" TextColor="#1E293B" />
-                                <Label Text="{Binding Description}" TextColor="#1E293B"
-                                       LineBreakMode="TailTruncation" MaxLines="2" />
+                        <Frame Padding="12"
+                                Margin="0,6"
+                                HasShadow="True"
+                               BackgroundColor="#F5EFFF">
+                            <VerticalStackLayout Spacing="6"
+                                    BackgroundColor="#F5EFFF">
+                                <Label Text="{Binding Title}"
+                                        FontSize="18"
+                                        FontAttributes="Bold"
+                                       TextColor="#1E293B"/>
+                                <Label Text="{Binding StartTime, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}"
+                                       TextColor="#1E293B"/>
+                                <Label Text="{Binding Location}"
+                                        TextColor="#1E293B"/>
+                                <Label Text="{Binding Description}"
+                                        TextColor="#1E293B"
+                                       LineBreakMode="TailTruncation"
+                                        MaxLines="2"/>
 
                                 <HorizontalStackLayout Spacing="8">
                                     <Button Text="Muokkaa"
-                                            Command="{Binding BindingContext.EditCommand, Source={x:Reference Root}}"
+                                            Command="{Binding BindingContext.EditCommand, 
+Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}"
-                                            TextColor="#1E293B" BackgroundColor="#A294F9" />
+                                            TextColor="#1E293B"
+                                            BackgroundColor="#A294F9"/>
 
                                     <Button Text="Osallistujat"
-                                            Command="{Binding BindingContext.OpenParticipantsCommand, Source={x:Reference Root}}"
+                                            Command="{Binding BindingContext.OpenParticipantsCommand, 
+Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}"
-                                            TextColor="#1E293B" BackgroundColor="#A294F9" />
+                                            TextColor="#1E293B"
+                                            BackgroundColor="#A294F9"/>
 
                                     <Button Text="Poista"
-                                            Command="{Binding BindingContext.DeleteCommand, Source={x:Reference Root}}"
+                                            Command="{Binding BindingContext.DeleteCommand, 
+Source={x:Reference Root}}"
                                             CommandParameter="{Binding .}"
-                                            TextColor="White" BackgroundColor="IndianRed" />
+                                            TextColor="White"
+                                            BackgroundColor="IndianRed"/>
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Frame>
@@ -58,35 +77,52 @@
         </CollectionView>
 
         <!-- Tyhjän listan tila -->
-        <Grid Grid.Row="1" IsVisible="{Binding IsListEmpty}">
-            <Frame Padding="24" Margin="12" BackgroundColor="#F5EFFF" HasShadow="True" CornerRadius="12">
-                <VerticalStackLayout Spacing="12" HorizontalOptions="Center" VerticalOptions="Center">
-                    <Label Text="Ei tapahtumia vielä" FontSize="22" FontAttributes="Bold"
-                           TextColor="#1E293B" HorizontalTextAlignment="Center" />
+        <Grid Grid.Row="1"
+                IsVisible="{Binding IsListEmpty}">
+            <Frame Padding="24"
+                    Margin="12"
+                    BackgroundColor="#F5EFFF"
+                    HasShadow="True"
+                   CornerRadius="12">
+                <VerticalStackLayout Spacing="12"
+                        HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                    <Label Text="Ei tapahtumia vielä"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                           TextColor="#1E293B"
+                            HorizontalTextAlignment="Center"/>
                     <Label Text="Luo ensimmäinen tapahtuma aloittaaksesi."
-                           FontSize="14" TextColor="#1E293B" Opacity="0.8"
-                           HorizontalTextAlignment="Center" />
+                           FontSize="14"
+                            TextColor="#1E293B"
+                            Opacity="0.8"
+                           HorizontalTextAlignment="Center"/>
                     <Button Text="Luo ensimmäinen tapahtuma"
                             Command="{Binding NewEventCommand}"
-                            TextColor="#1E293B" BackgroundColor="#A294F9" Padding="12,8" CornerRadius="10" />
+                            TextColor="#1E293B"
+                            BackgroundColor="#A294F9"
+                            Padding="12,8"
+                            CornerRadius="10"/>
                 </VerticalStackLayout>
             </Frame>
         </Grid>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,*">
+        <Grid Grid.Row="2"
+                ColumnDefinitions="*,*">
             <Button Text="Uusi tapahtuma"
                     Command="{Binding NewEventCommand}"
                     BackgroundColor="#A294F9"
                     TextColor="#1E293B"
-                    Grid.Column="0" Margin="10,0" />
+                    Grid.Column="0"
+                    Margin="10,0"/>
             <Button Text="Poista kaikki"
                     Command="{Binding DeleteAllCommand}"
                     IsEnabled="{Binding HasItems}"
                     Margin="10,0"
                     BackgroundColor="IndianRed"
                     TextColor="White"
-                    Grid.Column="1" />
+                    Grid.Column="1"/>
         </Grid>
 
     </Grid>
-</ContentPage>
+</ContentPage> 

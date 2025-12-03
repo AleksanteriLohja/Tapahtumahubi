@@ -4,10 +4,13 @@
              x:Class="Tapahtumahubi.App.CalendarPage"
              Title="Kalenteri">
     <ContentPage.Content>
-        <Grid RowDefinitions="Auto,*" Padding="16">
-            <StackLayout Orientation="Horizontal" Spacing="12">
-                <Button Text="Tänään" Command="{Binding TodayCommand}" />
-                <DatePicker Date="{Binding SelectedDate}" />
+        <Grid RowDefinitions="Auto,*"
+                Padding="16">
+            <StackLayout Orientation="Horizontal"
+                    Spacing="12">
+                <Button Text="Tänään"
+                        Command="{Binding TodayCommand}"/>
+                <DatePicker Date="{Binding SelectedDate}"/>
             </StackLayout>
 
             <CollectionView Grid.Row="1"
@@ -16,17 +19,22 @@
                 <CollectionView.GroupHeaderTemplate>
                     <DataTemplate>
                         <Grid Padding="4,8">
-                            <Label Text="{Binding DateString}" FontAttributes="Bold" />
+                            <Label Text="{Binding DateString}"
+                                    FontAttributes="Bold"/>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.GroupHeaderTemplate>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="8" ColumnDefinitions="Auto,*">
-                            <Label Text="{Binding StartTime, StringFormat='{}{0:HH\\:mm}'}" />
-                            <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                <Label Text="{Binding Title}" FontAttributes="Bold" />
-                                <Label Text="{Binding Location}" FontSize="12" />
+                        <Grid Padding="8"
+                                ColumnDefinitions="Auto,*">
+                            <Label Text="{Binding StartTime, StringFormat='{}{0:HH\\:mm}'}"/>
+                            <VerticalStackLayout Grid.Column="1"
+                                    Spacing="2">
+                                <Label Text="{Binding Title}"
+                                        FontAttributes="Bold"/>
+                                <Label Text="{Binding Location}"
+                                        FontSize="12"/>
                             </VerticalStackLayout>
                         </Grid>
                     </DataTemplate>

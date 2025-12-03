@@ -1,21 +1,22 @@
 using Tapahtumahubi.App.ViewModels;
 
-namespace Tapahtumahubi.App;
-
-public partial class MainPage : ContentPage
+namespace Tapahtumahubi.App
 {
-    private readonly MainPageViewModel _vm;
-
-    public MainPage(MainPageViewModel vm)
+    public partial class MainPage : ContentPage
     {
-        InitializeComponent();
-        _vm = vm;
-        BindingContext = _vm;
-    }
+        private MainPageViewModel _vm = null!;
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        await _vm.InitializeAsync();
+        public MainPage()
+        {
+            InitializeComponent();
+            _vm = ServiceHelper.GetRequiredService<MainPageViewModel>();
+            BindingContext = _vm;
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            await _vm.InitializeAsync();
+        }
     }
 }

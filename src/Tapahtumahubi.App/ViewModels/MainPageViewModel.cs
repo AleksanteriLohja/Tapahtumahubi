@@ -1,4 +1,4 @@
-// src/Tapahtumahubi.App/ViewModels/MainPageViewModel.cs
+// src/Tapahtumahubi.App/ViewModels/MainPageViewModel.cs 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -42,7 +42,7 @@ public partial class MainPageViewModel : BaseViewModel
 
             _all = await db.Events
                 .AsNoTracking()
-                .OrderUpcomingFirst(now) // tulevat ensin, sitten StartTime nousevasti
+                .OrderUpcomingFirst(now) // tulevat ensin, sitten StartTime nousevasti 
                 .ToListAsync();
 
             Events.Clear();
@@ -50,7 +50,6 @@ public partial class MainPageViewModel : BaseViewModel
 
             OnPropertyChanged(nameof(IsListEmpty));
             OnPropertyChanged(nameof(HasItems));
-
             ApplyFilter();
         }
         finally { IsBusy = false; }
@@ -99,8 +98,9 @@ public partial class MainPageViewModel : BaseViewModel
         });
     }
 
-    // Yhteinen, null-turvallinen Confirm-apu:
-    private static Task<bool> Confirm(string title, string message, string accept, string cancel) =>
+    // Yhteinen, null-turvallinen Confirm-apu: 
+    private static Task<bool> Confirm(string title, string message, string accept, string cancel)
+=>
         (Application.Current?.MainPage?.DisplayAlert(title, message, accept, cancel)
             ?? Task.FromResult(false));
 
@@ -109,7 +109,8 @@ public partial class MainPageViewModel : BaseViewModel
     {
         if (ev is null) return;
 
-        var ok = await Confirm("Poista", $"Poistetaanko \"{ev.Title ?? string.Empty}\"?", "Poista", "Peruuta");
+        var ok = await Confirm("Poista", $"Poistetaanko \"{ev.Title ?? string.Empty}\"?", "Poista",
+"Peruuta");
         if (!ok) return;
 
         using var db = await _dbFactory.CreateDbContextAsync();
@@ -126,7 +127,8 @@ public partial class MainPageViewModel : BaseViewModel
     [RelayCommand]
     private async Task DeleteAllAsync()
     {
-        var ok = await Confirm("Poista kaikki", "Haluatko varmasti poistaa KAIKKI tapahtumat?", "Poista kaikki", "Peruuta");
+        var ok = await Confirm("Poista kaikki", "Haluatko varmasti poistaa KAIKKI tapahtumat?",
+"Poista kaikki", "Peruuta");
         if (!ok) return;
 
         using var db = await _dbFactory.CreateDbContextAsync();

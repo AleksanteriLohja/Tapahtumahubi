@@ -1,191 +1,154 @@
-# Tapahtumahubi
+Tapahtumahubi
 
-Tapahtumahubi on .NET 8 / .NET MAUI -harjoitusprojekti, jonka tarkoituksena on
-mallintaa yksinkertaista tapahtumien ja osallistujien hallintaa. Projekti on
-osa ohjelmistotuotannon kurssia ja toteutettu kerrosarkkitehtuurilla:
+Yksinkertainen mutta tuotantotapainen tapahtumahallinnan sovellus (.NET 8 + .NET MAUI, SQLite, EF Core, MVVM).
+Tavoitteena on kurssiprojektina toteuttaa selkeästi rakennettu, testattu ja dokumentoitu työpöytäsovellus.
 
-- **Domain** – ydindomain (Event, Participant)
-- **Infrastructure** – tietokanta ja palvelut (EF Core + SQLite)
-- **App** – .NET MAUI -käyttöliittymä
-- **Tests** – yksikkö- ja integraatiotestit (xUnit)
+Sisällys
 
-Pääalusta on tällä hetkellä **Windows-työpöytä**. Android/iOS/MacCatalyst
--targetit ovat olemassa mahdollista jatkokehitystä varten, mutta niitä ei
-ole pakko kääntää/ajaa.
+Arkkitehtuuri
 
----
+Vaatimukset ja asennus
 
-## Päätoiminnot
+Ajaminen (Windows)
 
-- Tapahtumien mallinnus (`Event`)
-- Osallistujien mallinnus (`Participant`)
-- Tietokantakerros EF Coren ja SQLite-tietokannan avulla
-- Tapahtumien listauksen logiikka (`MainPageViewModel`)
-- Uuden tapahtuman luomisen logiikka (`NewEventPageViewModel`)
-- Peruspalvelut tapahtumien ja osallistujien hakemiseen ja tallentamiseen
-- Lokitus virhetilanteissa (`ILogger`)
+Tietokanta ja migraatiot
 
-UI-taso käyttää ViewModel-kerrosta eikä ole suorassa riippuvuudessa tietokantaan.
+Lokitus
 
----
+Laatu: koodi, testit ja tyyli
 
-## Teknologiat
+Projektinhallinta: roolit, tunnit, AI-käyttö
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/)
-- .NET MAUI (WinUI, `net8.0-windows10.0.19041.0`)
-- Entity Framework Core + SQLite
-- xUnit (yksikkö- ja integraatiotestit)
-- Microsoft.Extensions.Logging
-- GitHub Actions (CI)
-- Dependabot
+Käyttöohje (pika)
 
----
+Tunnetut rajoitteet ja jatkokehitys
 
-## Projektirakenne
-
-```text
-.
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── docs/
-│   ├── project-card.md
-│   └── vaatimukset.md
-├── src/
-│   ├── Tapahtumahubi.App/
-│   │   ├── ViewModels/
-│   │   │   ├── BaseViewModel.cs
-│   │   │   ├── MainPageViewModel.cs
-│   │   │   └── NewEventPageViewModel.cs
-│   │   └── Tapahtumahubi.App.csproj
-│   ├── Tapahtumahubi.Domain/
-│   │   ├── Event.cs
-│   │   └── Participant.cs
-│   ├── Tapahtumahubi.Infrastructure/
-│   │   ├── AppDbContext.cs
-│   │   ├── AppDbContextSeed.cs
-│   │   ├── DesignTimeDbContextFactory.cs
-│   │   ├── Queries/
-│   │   │   └── EventQueries.cs
-│   │   ├── Services/
-│   │   │   └── ParticipantService.cs
-│   │   └── Migrations/
-│   └── Tapahtumahubi.Tests/
-│       ├── ViewModels/
-│       │   ├── MainPageViewModelTests.cs
-│       │   └── NewEventPageViewModelTests.cs
-│       ├── EventTests.cs
-│       ├── ParticipantTests.cs
-│       └── Tapahtumahubi.Tests.csproj
-├── coverage.runsettings
-├── .editorconfig
-├── .gitignore
-├── LICENSE
-├── README.md
-└── Tapahtumahubi.sln
+Lisenssi
 
 
 Arkkitehtuuri
-Domain
 
-Event – tapahtuma (nimi, ajankohta, kuvaus, …)
+Ratkaisun kerrokset
 
-Participant – osallistuja (liitettävissä tapahtumiin)
+Tapahtumahubi.Domain
+Entiteetit ja niiden sisäinen validointi (Event, Participant).
+Domain-logiikan tarkoitus on olla teknologianeutraali.
 
-Domain ei tunne tietokantaa, UI:ta tai infrastruktuuria.
+Tapahtumahubi.Infrastructure
+
+EF Core/SQLite: AppDbContext, migraatiot ja kyselyt (Queries/), alustus (Seed/).
+
+Palvelut: esim. ParticipantService, joka käyttää IDbContextFactory<AppDbContext> (turvallinen malli UI-sovelluksille).
+
+Testeissä käytetään in-memory/SQLite-strategioita.
+
+Tapahtumahubi.App (.NET MAUI)
+
+MVVM: ViewModels/ + näkymät (*.xaml).
+
+DI: kaikki sivut ja viewmodelit rekisteröidään MauiProgram.cs:ssä.
+
+ServiceHelper hakee DI:stä VM:n sivujen parametrittomissa konstruktoreissa.
+
+Serilog lokittaa tiedostoon.
+
+Windows-target: net8.0-windows10.0.19041.0.
+
+Tapahtumahubi.Tests
+Yksikkö- ja integraatiotestit (xUnit). Kattaa domain-validoinnit, kyselyt, palvelut ja perus-VM-polut.
+
+Navigaatio/UX
+
+Tabit: Tapahtumat, Kalenteri.
+
+Uusi/Muokkaa tapahtumaa -näkymässä otsikko, sijainti, päivä + kellonaika, kuvaus ja maks. osallistujat.
+
+Osallistujille uniikki sähköposti tapahtumaa kohti; kapasiteettirajat huomioidaan.
 
 
-Infrastructure
+Vaatimukset ja asennus
 
-AppDbContext – EF Core -konteksti
+Windows 10 2004 / 11 (19041+)
 
-Migrations – tietokantamigraatiot
+.NET 8 SDK ja .NET 8 Desktop Runtime
 
-AppDbContextSeed – kehitysdatan alustaminen
+(Suositus) EF Core Tools: dotnet tool install --global dotnet-ef
 
-Queries/Services – domain-rajapintojen toteutuksia
-
-Integraatiotesteissä käytetään SQLite in-memory -kantaa.
-
-
-App (MAUI)
-
-ViewModelit: MainPageViewModel, NewEventPageViewModel
-
-ViewModelit testattavissa ilman UI-riippuvuuksia (DI MauiProgram.cs:ssa)
+Kloonaus:
+git clone https://github.com/AleksanteriLohja/Tapahtumahubi.git
+cd Tapahtumahubi
+dotnet restore
 
 
-Tests
-
-Domain- ja Infrastructure-testit
-
-Integraatiotestit (SQLite in-memory)
-
-ViewModel-testit (keskeiset polut, virhepolut, tilamuutokset)
-
-
-Kehitysympäristö
-
-Esivaatimukset
-
-Windows 10 (19041) tai uudempi
-
-.NET 8 SDK
-
-(Suositus) Visual Studio 2022 tai VS Code + C#-laajennus
-
-Rakentaminen & ajo (Windows)
-
+Ajaminen (Windows)
 dotnet build src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
-dotnet run  --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
+dotnet run   --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
 
-Huom: Ratkaisun (.sln) rakentaminen voi yrittää kääntää myös Android-targetin
-(JDK 21). Yllä olevat komennot riittävät tämänhetkiseen käyttöön.
-
-
-Testit & kattavuus
-
-Paikallisesti
-
-cd src/Tapahtumahubi.Tests
-dotnet test --settings ..\..\coverage.runsettings
+Ensimmäisellä ajolla sovellus luo paikallisen SQLite-tietokannan:
+%LocalAppData%\Tapahtumahubi.App\app.db
 
 
-Tällä hetkellä:
+Tietokanta ja migraatiot
 
-Passed: 35 / Failed: 0 / Skipped: 0
+Migraatiot ovat projektissa Tapahtumahubi.Infrastructure (src/Tapahtumahubi.Infrastructure/Migrations).
 
-CI (GitHub Actions)
+Tyypilliset komennot:
+# Aja viimeisin migraatio (kehitys)
+dotnet ef database update --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
 
-Rakentaa Domain, Infrastructure, Tests
+# Luo uusi migraatio
+dotnet ef migrations add <Nimi> --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
 
-Ajaa xUnit-testit ja kerää Cobertura-kattavuuden (artefaktit: test-results, coverage)
-
-MAUI App ei kuulu CI-buildiin
-
-
-Dokumentaatio
-
-docs/vaatimukset.md – vaatimukset
-
-docs/project-card.md – projektikortti
-
-GitHub Issues/Project – sprintit, issuet ja DoD
+Huom: App käyttää IDbContextFactory<AppDbContext> ja sijoittaa db-tiedoston käyttäjän LocalApplicationData-kansioon. Tämä vähentää lukituksia ja sopii UI-sovelluksille.
 
 
-Jatkokehitysideoita
+Lokitus
 
-Android-targetin buildin korjaus (JDK 21) ja mobiiliajo
+Serilog kirjoittaa lokitiedostot:
+%LocalAppData%\Tapahtumahubi.App\logs\app-<päivä>.log
 
-UI:n täydentäminen (osallistujien hallinta, näkymät)
+Lokista löytyy mahdolliset käynnistys-/run-aikaiset virheilmoitukset (hyödyllinen debugissa).
 
-Haku- ja suodatustoiminnat listaukseen
+Laatu: koodi, testit ja tyyli
 
-Lisää testejä reunatapauksiin
+Koodityyli: .editorconfig repojuuressa; varatut sanat ja nimet selkeästi.
 
-Lokituksen ja virheenkäsittelyn yhtenäistäminen
+Analysointi: projektit kääntyvät puhtaasti .NET 8:lla; varoitukset pidetään minimissä.
+
+Testit:
+dotnet test
+
+(Valinnaisesti voi kerätä kattavuuden Coverletilla / runsettingsillä.)
+
+Pieni siivous tehty: tarpeettomat duplikaatit .gitignoressa poistettu, DI-rekisteröinnit täydelliset, sivujen konstruktorit parametrittomiksi ja VM-sidonta DI:stä (ServiceHelper).
+
+
+Käyttöohje (pika)
+
+Uusi tapahtuma: Tapahtumat-välilehdeltä Uusi. Täytä otsikko, sijainti, päivä, kellonaika, kuvaus ja maks. osallistujat. Tallenna.
+
+Muokkaus/poisto: valitse tapahtuma listasta.
+
+Osallistujat: lisää nimi + sähköposti. Sähköposti on uniikki per tapahtuma; kapasiteettiraja estää ylitäytön.
+
+Kalenteri: selaa päivämääriä Kalenteri-välilehdeltä; päivän tapahtumat näkyvät listana.
+
+
+Tunnetut rajoitteet ja jatkokehitys
+
+MAUI-projekti on optimoitu Windowsille (kurssin demot). Muiden alustojen tuki on skelettona, ei testattu.
+
+Jatkossa:
+
+haku/suodatus tapahtumalistaan
+
+testikattavuuden nosto (VM-komennot, virhepolut)
+
+vienti CSV/ICS
+
+per-event lokit/telemetria
 
 
 Lisenssi
 
-Katso LICENSE
+MIT (katso LICENSE)

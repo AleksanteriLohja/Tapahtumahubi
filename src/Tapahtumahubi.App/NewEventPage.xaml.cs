@@ -1,31 +1,41 @@
 using System;
 using Microsoft.Maui.Controls;
+using Tapahtumahubi.App.ViewModels;
 
 namespace Tapahtumahubi.App
 {
-    public partial class NewEventPage : ContentPage
+    // Vastaanottaa "EventId" -parametrin muokkaustilaa varten
+    public partial class NewEventPage : ContentPage, IQueryAttributable
     {
+        private NewEventPageViewModel _vm = null!;
+
         public NewEventPage()
         {
             InitializeComponent();
+
+            // Ota VM DI:stä ja aseta BindingContext
+            _vm = ServiceHelper.GetRequiredService<NewEventPageViewModel>();
+            BindingContext = _vm;
         }
 
-        // Enter Title -> Location
-        private void OnTitleCompleted(object? sender, EventArgs e)
+        protected override async void OnAppearing()
         {
-            LocationEntry?.Focus();
+            base.OnAppearing();
+            await _vm.InitializeAsync(); // täyttää kentät muokkaustilassa
         }
 
-        // Enter Location -> Date
-        private void OnLocationCompleted(object? sender, EventArgs e)
+        // Välilehdeltä tai listasta tullessa: "EventId" annetaan query-parametrina
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
         {
-            DatePickerControl?.Focus();
+            if (query.TryGetValue("EventId", out var idObj) && idObj is int id)
+            {
+                _vm.SetEditingId(id);
+            }
         }
 
-        // Enter MaxParticipants -> Save
-        private void OnMaxParticipantsCompleted(object? sender, EventArgs e)
-        {
-            SaveButton?.Focus();
-        }
+        // Alla säilytetään aiempi kenttäfokuslogiikka
+        private void OnTitleCompleted(object? sender, EventArgs e) => LocationEntry?.Focus();
+        private void OnLocationCompleted(object? sender, EventArgs e) => DatePickerControl?.Focus();
+        private void OnMaxParticipantsCompleted(object? sender, EventArgs e) => SaveButton?.Focus();
     }
 }

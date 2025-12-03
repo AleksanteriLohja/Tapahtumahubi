@@ -11,8 +11,10 @@ public partial class CalendarPageViewModel : BaseViewModel
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
-    [ObservableProperty] private DateTime selectedDate = DateTime.Today;
+    [ObservableProperty] 
+    private DateTime selectedDate = DateTime.Today;
 
+    // Ryhmät, joita CollectionView näyttää IsGrouped="True" -tilassa
     public ObservableCollection<CalendarDayGroup> Days { get; } = new();
 
     public CalendarPageViewModel(IDbContextFactory<AppDbContext> dbFactory)
@@ -34,9 +36,11 @@ public partial class CalendarPageViewModel : BaseViewModel
     private async Task LoadAsync()
     {
         if (IsBusy) return;
+
         try
         {
             IsBusy = true;
+
             using var db = await _dbFactory.CreateDbContextAsync();
 
             var start = SelectedDate.Date.AddDays(-7);
@@ -47,28 +51,34 @@ public partial class CalendarPageViewModel : BaseViewModel
                 .OrderBy(e => e.StartTime)
                 .ToListAsync();
 
+            // RYHMITYS: luo ryhmät niin, että jokainen ryhmä *itsessään* on IEnumerable<Event>
             var groups = items
                 .GroupBy(e => e.StartTime.Date)
                 .OrderBy(g => g.Key)
-                .Select(g => new CalendarDayGroup(g.Key, g.ToList()))
+                .Select(g => new CalendarDayGroup(g.Key, g))
                 .ToList();
 
             Days.Clear();
             foreach (var g in groups) Days.Add(g);
         }
-        finally { IsBusy = false; }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }
 
-public sealed class CalendarDayGroup : ObservableObject
+/// <summary>
+/// Korjattu ryhmätyyppi: perii ObservableCollection&lt;Event&gt;,
+/// jolloin CollectionView osaa renderöidä ryhmän ilman kaatumista.
+/// </summary>
+public sealed class CalendarDayGroup : ObservableCollection<Event>
 {
     public DateTime Date { get; }
     public string DateString => Date.ToString("dddd dd.MM.yyyy");
-    public ObservableCollection<Event> Items { get; }
 
-    public CalendarDayGroup(DateTime date, IList<Event> items)
+    public CalendarDayGroup(DateTime date, IEnumerable<Event> items) : base(items)
     {
         Date = date;
-        Items = new ObservableCollection<Event>(items);
     }
 }
