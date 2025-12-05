@@ -1,154 +1,111 @@
-Tapahtumahubi
+# Tapahtumahubi
 
 Yksinkertainen mutta tuotantotapainen tapahtumahallinnan sovellus (.NET 8 + .NET MAUI, SQLite, EF Core, MVVM).
-Tavoitteena on kurssiprojektina toteuttaa selkeästi rakennettu, testattu ja dokumentoitu työpöytäsovellus.
 
-Sisällys
+![Etusivu](docs/images/etusivu.png)
+![Kalenteri](docs/images/kalenteri.png)
 
-Arkkitehtuuri
+---
 
-Vaatimukset ja asennus
+## Sisällys
+- [Arkkitehtuuri](#arkkitehtuuri)
+- [Vaatimukset ja asennus](#vaatimukset-ja-asennus)
+- [Ajaminen (Windows)](#ajaminen-windows)
+- [Tietokanta ja migraatiot](#tietokanta-ja-migraatiot)
+- [Lokitus](#lokitus)
+- [Laatu: koodi, testit, tyyli](#laatu-koodi-testit-ja-tyyli)
+- [Projektinhallinta](#projektinhallinta)
+- [Käyttöohje (pika)](#käyttöohje-pika)
+- [Tunnetut rajoitteet ja jatkokehitys](#tunnetut-rajoitteet-ja-jatkokehitys)
+- [Lisenssi](#lisenssi)
 
-Ajaminen (Windows)
+## Arkkitehtuuri
 
-Tietokanta ja migraatiot
+**Ratkaisun kerrokset**
+- **Tapahtumahubi.Domain** – entiteetit ja validointi (`Event`, `Participant`).
+- **Tapahtumahubi.Infrastructure** – EF Core/SQLite: `AppDbContext`, migraatiot (Migrations/), seed (Seed/), kyselyt (Queries/). Käyttää `IDbContextFactory<AppDbContext>`.
+- **Tapahtumahubi.App** – .NET MAUI UI (MVVM): *ViewModels* ja *XAML*-näkymät. DI-rekisteröinti `MauiProgram.cs`:ssä. Serilog lokitukseen.
+- **Tapahtumahubi.Tests** – xUnit: domain-validoinnit, kyselyt, palvelut, perus-VM-polut.
 
-Lokitus
+**Navigaatio/UX**
+- Välilehdet: **Tapahtumat** ja **Kalenteri**.
+- Uusi/Muokkaa: otsikko, sijainti, päivä, aika, kuvaus, maks. osallistujat.
+- Osallistujat: sähköposti uniikki per tapahtuma; kapasiteettiraja.
 
-Laatu: koodi, testit ja tyyli
+## Vaatimukset ja asennus
 
-Projektinhallinta: roolit, tunnit, AI-käyttö
+- Windows 10 2004 / 11 (19041+)
+- .NET 8 SDK (+ Desktop Runtime)
+- (Suositus) EF Core Tools: `dotnet tool install --global dotnet-ef`
 
-Käyttöohje (pika)
-
-Tunnetut rajoitteet ja jatkokehitys
-
-Lisenssi
-
-
-Arkkitehtuuri
-
-Ratkaisun kerrokset
-
-Tapahtumahubi.Domain
-Entiteetit ja niiden sisäinen validointi (Event, Participant).
-Domain-logiikan tarkoitus on olla teknologianeutraali.
-
-Tapahtumahubi.Infrastructure
-
-EF Core/SQLite: AppDbContext, migraatiot ja kyselyt (Queries/), alustus (Seed/).
-
-Palvelut: esim. ParticipantService, joka käyttää IDbContextFactory<AppDbContext> (turvallinen malli UI-sovelluksille).
-
-Testeissä käytetään in-memory/SQLite-strategioita.
-
-Tapahtumahubi.App (.NET MAUI)
-
-MVVM: ViewModels/ + näkymät (*.xaml).
-
-DI: kaikki sivut ja viewmodelit rekisteröidään MauiProgram.cs:ssä.
-
-ServiceHelper hakee DI:stä VM:n sivujen parametrittomissa konstruktoreissa.
-
-Serilog lokittaa tiedostoon.
-
-Windows-target: net8.0-windows10.0.19041.0.
-
-Tapahtumahubi.Tests
-Yksikkö- ja integraatiotestit (xUnit). Kattaa domain-validoinnit, kyselyt, palvelut ja perus-VM-polut.
-
-Navigaatio/UX
-
-Tabit: Tapahtumat, Kalenteri.
-
-Uusi/Muokkaa tapahtumaa -näkymässä otsikko, sijainti, päivä + kellonaika, kuvaus ja maks. osallistujat.
-
-Osallistujille uniikki sähköposti tapahtumaa kohti; kapasiteettirajat huomioidaan.
-
-
-Vaatimukset ja asennus
-
-Windows 10 2004 / 11 (19041+)
-
-.NET 8 SDK ja .NET 8 Desktop Runtime
-
-(Suositus) EF Core Tools: dotnet tool install --global dotnet-ef
-
-Kloonaus:
+**Kloonaus**
+```bash
 git clone https://github.com/AleksanteriLohja/Tapahtumahubi.git
 cd Tapahtumahubi
 dotnet restore
-
+```
 
 Ajaminen (Windows)
+
 dotnet build src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
-dotnet run   --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
+dotnet run  --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
 
-Ensimmäisellä ajolla sovellus luo paikallisen SQLite-tietokannan:
+Ensimmäisellä ajolla sovellus luo paikallisen tietokannan:
 %LocalAppData%\Tapahtumahubi.App\app.db
-
 
 Tietokanta ja migraatiot
 
-Migraatiot ovat projektissa Tapahtumahubi.Infrastructure (src/Tapahtumahubi.Infrastructure/Migrations).
-
-Tyypilliset komennot:
-# Aja viimeisin migraatio (kehitys)
+Migraatiot: src/Tapahtumahubi.Infrastructure/Migrations.
+# Aja viimeisin migraatio
 dotnet ef database update --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
 
 # Luo uusi migraatio
 dotnet ef migrations add <Nimi> --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
 
-Huom: App käyttää IDbContextFactory<AppDbContext> ja sijoittaa db-tiedoston käyttäjän LocalApplicationData-kansioon. Tämä vähentää lukituksia ja sopii UI-sovelluksille.
-
+App käyttää IDbContextFactory<AppDbContext> ja sijoittaa tietokannan LocalApplicationData-kansioon – hyvä malli UI-sovelluksille.
 
 Lokitus
 
-Serilog kirjoittaa lokitiedostot:
+Serilog kirjoittaa lokit:
 %LocalAppData%\Tapahtumahubi.App\logs\app-<päivä>.log
-
-Lokista löytyy mahdolliset käynnistys-/run-aikaiset virheilmoitukset (hyödyllinen debugissa).
 
 Laatu: koodi, testit ja tyyli
 
-Koodityyli: .editorconfig repojuuressa; varatut sanat ja nimet selkeästi.
+Analyysi: solution kääntyy puhtaasti; varoitukset nostettu virheiksi (katso Directory.Build.props).
 
-Analysointi: projektit kääntyvät puhtaasti .NET 8:lla; varoitukset pidetään minimissä.
+Testit
+dotnet test --settings coverage.runsettings
 
-Testit:
-dotnet test
+Kattavuusraportti talteen (Coverlet collector).
 
-(Valinnaisesti voi kerätä kattavuuden Coverletilla / runsettingsillä.)
+Tyyli: .editorconfig.
 
-Pieni siivous tehty: tarpeettomat duplikaatit .gitignoressa poistettu, DI-rekisteröinnit täydelliset, sivujen konstruktorit parametrittomiksi ja VM-sidonta DI:stä (ServiceHelper).
+Projektinhallinta
 
+Projektisuunnitelma: docs/projektisuunnitelma.md (roolit, rotaatio, sprintit, riskit, DoD).
+
+AI-käyttö: docs/AI-käyttö.md (missä, miksi, miten).
+
+VS Code: .vscode/tasks.json & launch.json (F5 ajaa suoraan).
+
+Release:
+dotnet publish src/Tapahtumahubi.App -c Release -f net8.0-windows10.0.19041.0 -r win10-x64 --self-contained false -o publish/win
 
 Käyttöohje (pika)
 
-Uusi tapahtuma: Tapahtumat-välilehdeltä Uusi. Täytä otsikko, sijainti, päivä, kellonaika, kuvaus ja maks. osallistujat. Tallenna.
+Luo uusi tapahtuma Tapahtumat-välilehdeltä – täytä kentät ja Tallenna.
 
-Muokkaus/poisto: valitse tapahtuma listasta.
+Muokkaa/Poista tapahtumakortilta.
 
-Osallistujat: lisää nimi + sähköposti. Sähköposti on uniikki per tapahtuma; kapasiteettiraja estää ylitäytön.
+Osallistujat: lisää nimi + sähköposti (uniikki per tapahtuma).
 
-Kalenteri: selaa päivämääriä Kalenteri-välilehdeltä; päivän tapahtumat näkyvät listana.
-
+Kalenteri: selaa päivämääriä, Tänään palaa tähän päivään.
 
 Tunnetut rajoitteet ja jatkokehitys
 
-MAUI-projekti on optimoitu Windowsille (kurssin demot). Muiden alustojen tuki on skelettona, ei testattu.
+Projekti optimoitu Windowsille; muut alustat skelettona.
 
-Jatkossa:
-
-haku/suodatus tapahtumalistaan
-
-testikattavuuden nosto (VM-komennot, virhepolut)
-
-vienti CSV/ICS
-
-per-event lokit/telemetria
-
+Jatkossa: haku/suodatus, CSV/ICS-vienti, VM-virhepolkujen testit.
 
 Lisenssi
-
-MIT (katso LICENSE)
+MIT

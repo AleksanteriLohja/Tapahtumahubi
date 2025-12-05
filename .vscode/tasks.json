@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-windows",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/Tapahtumahubi.App/Tapahtumahubi.App.csproj",
+        "-c", "Debug",
+        "-f", "net8.0-windows10.0.19041.0"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "run-tests",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "--settings", "coverage.runsettings"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "publish-windows",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/src/Tapahtumahubi.App",
+        "-c", "Release",
+        "-f", "net8.0-windows10.0.19041.0",
+        "-r", "win10-x64",
+        "--self-contained", "false",
+        "-o", "${workspaceFolder}/publish/win"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

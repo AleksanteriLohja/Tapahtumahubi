@@ -446,3 +446,8 @@ coverage/
 
 
 coverage/
+
+# ignore everything in .vscode except tasks/launch
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json

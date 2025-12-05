@@ -1,111 +1,86 @@
 # Projektisuunnitelma – Tapahtumahubi
 
-## 1. Yhteenveto
-Tapahtumahubi on .NET 8 / .NET MAUI -pohjainen työpöytäsovellus tapahtumien hallintaan. 
-Tavoite: kurssiprojektina tuottaa rakenteeltaan selkeä, testattu ja dokumentoitu sovellus,
-joka demonstroi kerrosarkkitehtuuria (Domain/Infrastructure/App), MVVM-mallia, EF Core -migraatioita,
-lokitusta ja projektityöskentelyä.
+**Ryhmä:** R5  
+**Versio:** 1.0  
+**Päiväys:** 5.12.2025  
+**Repo:** https://github.com/AleksanteriLohja/Tapahtumahubi
 
-**Valmis, kun:** alla oleva *Definition of Done* täyttyy kaikille toteutettaville ominaisuuksille.
+## 1. Tausta ja tavoitteet
+Toteutetaan Windowsille optimoitu tapahtumahallinnan MAUI-sovellus (CRUD, osallistujat, kalenteri). Painotus selkeässä arkkitehtuurissa (Domain/Infrastructure/App), testauksessa ja dokumentaatiossa. Kurssin 5/5-tavoite: kaikki päätoiminnallisuudet laadukkaasti, syötevalidoinnit, asialliset virheilmoitukset, näppäimistö-navigointi (TabIndex), ei kaatumisia.
 
----
+## 2. Pelisäännöt
+- **Työaika:** 3 op × 27 h / opiskelija (kirjataan viikoittain).
+- **Viestintä:** Discord + GitHub Issues/Projects (asynkroninen työ sallittu).
+- **Työkalut:** .NET 8, MAUI, EF Core + SQLite, xUnit, Serilog, VS Code, GitHub.
+- **Palaveri:** lyhyt viikkokoonti tai asynkroninen kirjallinen kooste (päätökset ylös).
 
-## 2. Tavoitteet ja laajuus
-**In scope**
-- Tapahtumien CRUD (otsikko, sijainti, päivä + kellonaika, kuvaus, maks. osallistujat).
-- Osallistujat per tapahtuma (uniikki sähköposti/tapahtuma, kapasiteettiraja).
-- Kalenterin selaus ja tapahtumien näkyminen päivittäin.
-- Lokitus (Serilog), tietokanta (SQLite), migraatiot (EF Core).
-- Testit: domain-validoinnit, palvelut, kyselyt, keskeiset VM-polut.
-- Dokumentaatio (README, tämä suunnitelma, AI-käyttö).
+## 3. Roolit ja projektipäällikön rotaatio
+| Viikko | Päällikkö     | Vastuut |
+|-------:|---------------|---------|
+| v1     | Aleksanteri   | Kickoff, repo, backlog, roolitus |
+| v2     | Jan           | Domain & Infrastructure, migraatiot |
+| v3     | Antti         | UI & navigointi |
+| v4     | Simo          | Testit & katselmointi |
+| v5     | Aleksanteri   | Viimeistely, julkaisu, esitysvideo |
 
-**Out of scope**
-- Mobiilialustojen tuotantotuki.
-- Synkronointi pilveen / käyttäjähallinta.
-- Monikielisyys.
+> Asynkroninen työ: päätökset ja tehtäväjaot kirjataan viikkoraportteihin/pöytäkirjoihin.
 
----
+## 4. Vaihemalli (vesiputous)
+1) **Määrittely** – vaatimukset & toiminnallisuus  
+2) **Suunnittelu** – arkkitehtuuri, tietokanta  
+3) **Toteutus** – inkrementit (featuret)  
+4) **Testaus** – yksikkö + integraatio + manuaalitarkistus UI:hin  
+5) **Katselmointi & julkaisu** – v1.0, dokumentit, video
 
-## 3. Aikataulu ja virstanpylväät
-| Viikko | Virstanpylväs | Tuotokset |
-|------:|----------------|-----------|
-| 1 | Projektin käynnistys | Repo valmis, backlog, roolit, arkkitehtuuripäätökset |
-| 2 | Perus-CRUD ja kalenteri | Event/Participant-peruspolut, ensimmäiset testit |
-| 3 | Validoinnit ja virheenkäsittely | Domain-validoinnit, kapasiteetti/uniikkius, lokitus |
-| 4 | Siistiminen ja testikattavuus | Testien laajennus, README, tähän suunnitelmaan päivitykset |
-| 5 | Demo ja loppuraportti | Käyttöohje, AI-käyttöraportti, tuntikooste |
+### 4.1 Viikkokohtainen eteneminen
+- **v1–v2:** Domain + Infra + perus UI, EF-migraatiot  
+- **v3:** CRUD + osallistujat, validoinnit, Serilog  
+- **v4:** Kalenteri, testit, virhepolut, TabIndex-järjestys  
+- **v5:** Viimeistely, README & dokumentit, julkaisu, esitysvideo
 
-(Tarkenna kurssin todellisen kalenterin mukaan.)
+## 5. Definition of Ready (DoR)
+User story/tehtävä on “ready”, kun:
+- Kuvaus, hyväksymiskriteerit ja UI-paikka on selviä
+- Mahdolliset DB-muutokset ja migraatiotarve tunnistettu
+- Validointisäännöt kirjattu (pakolliset kentät, rajat)
+- Testitapausluonnos olemassa (onnistuu/epäonnistuu)
 
----
+## 6. Definition of Done (DoD)
+- Kääntyy ilman varoituksia (**TreatWarningsAsErrors**)  
+- `dotnet test --settings coverage.runsettings` vihreänä  
+- README ja dokumentit päivitetty  
+- UI-pääpolut testattu: lisäys, muokkaus, poisto, osallistujat, kalenteri  
+- Lokiin ei jää virheitä normaalikäytössä (Serilog)  
+- TabIndex-järjestys ja syötevalidoinnit kunnossa, selkeät virheilmoitukset
 
-## 4. Roolit ja vastuut
-| Jakso | Projektipäällikkö | Vastuut |
-|------:|-------------------|---------|
-| vk 1–2 | Nimi | Sprintin suunnittelu, daily/weekly, katselmoinnit |
-| vk 3–4 | Nimi | Priorisointi, PR-käytännöt, riskiseuranta |
-| vk 5 | Nimi | Loppuraportti, demo, viimeistely |
+## 7. Git-käytännöt
+- **Haarat:** `main` (vakaa), `feature/<kuvaava-nimi>`  
+- **PR-sääntö:** vähintään 1 katselmoija; PR:ssä kuvaus + kuvakaappaus tarvittaessa  
+- **Commiteissa:** pieni, kuvaava viesti (esim. `feat(ui): lisää osallistujan validointi`)
 
-**Yleiset vastuut**
-- **Tekninen vastuu:** arkkitehtuuri, EF-migraatiot, CI (tarvittaessa).
-- **Testausvastuu:** testikattavuus, runsettings.
-- **Dokumentointivastuu:** README, käyttöohje, AI-käyttö, tämä suunnitelma.
+## 8. Riskit
+| #  | Riski                            | Tod.näk. | Vaikutus | Hallinta |
+|----|----------------------------------|:-------:|:--------:|----------|
+| R1 | Aikataulu                        |   M     |    M     | Viikkoincrementit, selkeä backlog |
+| R2 | EF-migraatiot rikkoutuvat        |   M     |    M     | `IDbContextFactory`, migraatiot ennen julkaisua |
+| R3 | UI-kaatuminen                    |   L     |    K     | Poikkeusten käsittely, Serilog-logit, manuaalitestit |
+| R4 | Tiimin saatavuus                 |   M     |    M     | Asynkroninen työ + kirjaukset |
+| R5 | Heikko tabulointi/esteettömyys   |   M     |    M     | TabIndex suunnitelma, manuaalitestaus |
 
----
+## 9. Hyväksymiskriteerit (arvosana 5/5)
+- Kaikki päätoiminnot valmiit: tapahtumat (CRUD), osallistujat (uniikki sähköposti / tapahtuma, kapasiteetti), kalenteri
+- Syötevalidoinnit ja selkeät virheilmoitukset kaikissa lomakkeissa
+- Näppäimistö-navigointi: looginen **TabIndex** järjestys lomakenäkymissä
+- Ei kaatumisia virhesyötteisiin; virheet lokitetaan (Serilog)
+- Dokumentit palautettu: projektikortti, vaatimukset/toiminnallinen, viikkoraportit/pöytäkirjat, loppuraportti, esitysvideo
 
-## 5. Työnjako ja työskentelytavat
-- **Git-käytäntö:** feature-haarat → PR → koodikatselmointi → main.
-- **Branch-nimeäminen:** `feature/<aihe>`, `fix/<aihe>`, `docs/<aihe>`.
-- **Commit-viestit:** lyhyt imperatiivi + tarvittaessa tarkenne (issue/PR-viite).
-- **Project-taulu:** To Do → In Progress → Done, omistaja & tavoitepäivä jokaiselle kortille.
-- **Palaverit:** 1×/vko synkronointi (30–45 min), ad hoc tarpeen mukaan.
-- **Viestintä:** Discord (ryhmä), Moodle (opettajaviestit).
+## 10. Raportointi & palautukset
+- **Viikkoraportit:** yksi koontidokumentti (tai zip) viikoista v1–v5; kirjataan tunnit/hlö ja tehdyt asiat
+- **Pöytäkirjat:** lyhyt muistio tai asynkroninen kooste päätöksistä + tehtävistä
+- **Loppuraportti:** tiimin ja henkilökohtainen osuus (tunnit, oma panos, itsearvio)
+- **Esitysvideo:** demo hyväksymiskriteerien mukaisessa järjestyksessä
 
----
-
-## 6. Laatukäytännöt (Definition of Done)
-- Koodi noudattaa `.editorconfig`-tyyliä, build puhdas.
-- Ominaisuudella on **testit** (onnistuneet + virhepolut, jos järkevää).
-- Validoinnit domainissa; virheet näkyvät UI:ssa hallitusti (ei kaatumista).
-- Tietokantamuutokset migraatioilla; `dotnet ef database update` toimii.
-- README/käyttöohje päivitetty, lokin sijainti dokumentoitu.
-- PR on katselmoitu ja hyväksytty, Project-kortti siirretty Doneen.
-
----
-
-## 7. Riskit ja hallinta
-| Riski | Todennäköisyys | Vaikutus | Hallintatoimi |
-|------|:--------------:|:--------:|---------------|
-| Aikataulu venyy | M | H | Priorisoi vähimmäisominaisuudet, tee demo-kelpoinen ensin |
-| Tietokantalukitus / korruptio | L | M | `IDbContextFactory` UI:ssa, yksikkötestit, varmuuskopiointi tarvittaessa |
-| DI/VM instansiointi rikkoo navigaation | M | M | Parametrittomat sivukonstruktorit + `ServiceHelper` |
-| Testikattavuus jää ohueksi | M | M | Lisää testit jokaisesta bugista ja tärkeästä polusta |
-| Tiimin saatavuus | M | M | Roolivarahenkilöt, viikkopalaverit |
-
----
-
-## 8. Työkalut ja ympäristö
-- **Tekniikat:** .NET 8, .NET MAUI (Windows), EF Core + SQLite, xUnit, Serilog.
-- **IDE/Editor:** VS Code (F5=build+run), vaihtoehtona Visual Studio 2022.
-- **OS:** Windows 10/11 (19041+).
-- **Komennot:** ks. README (build/run/test/migraatiot).
-
----
-
-## 9. Tuntiseuranta (81 h/opiskelija)
-| Päivä | Tekijä | Tehtävä | kesto (h) | Kuvaus |
-|------:|--------|---------|----------:|--------|
-|      |        |         |           |        |
-
-Tunnit kootaan loppuraporttiin (suunnitellut vs. toteutuneet, poikkeamasyyt).
-
----
-
-## 10. Loppuraportin runko
-- Johdanto: tavoite, tiimi, roolit, aikataulu.
-- Tekniset ratkaisut ja perustelut.
-- Toteutuneet ominaisuudet ja rajaukset.
-- Laatu: testit, validoinnit, lokitus, käyttökokemus.
-- Projektinhallinta: tunnit, riskit, viestintä.
-- **Tekoälyn käyttö:** mitä, miksi, vaikutus, opit (linkki `AI-käyttö.md`:hen).
-- Johtopäätökset ja jatkokehitys.
+## 11. Liitteet & viitteet
+- README (ajot, migraatiot, lokit, julkaisu)  
+- `docs/AI-käyttö.md` (mihin AI:ta käytettiin)  
+- `.vscode/` (F5-ajot), `Directory.Build.props`, `coverage.runsettings`
