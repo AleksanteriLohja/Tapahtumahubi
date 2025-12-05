@@ -1,6 +1,8 @@
 # Tapahtumahubi
 
-Yksinkertainen mutta tuotantotapainen tapahtumahallinnan sovellus (.NET 8 + .NET MAUI, SQLite, EF Core, MVVM).
+[![CI](https://github.com/AleksanteriLohja/Tapahtumahubi/actions/workflows/ci.yml/badge.svg)](https://github.com/AleksanteriLohja/Tapahtumahubi/actions/workflows/ci.yml)
+
+Yksinkertainen mutta tuotantotapainen tapahtumahallinnan sovellus (.NET 8, .NET MAUI/Windows, SQLite, EF Core, MVVM).
 
 ![Etusivu](docs/images/etusivu.png)
 ![Kalenteri](docs/images/kalenteri.png)
@@ -13,99 +15,120 @@ Yksinkertainen mutta tuotantotapainen tapahtumahallinnan sovellus (.NET 8 + .NET
 - [Ajaminen (Windows)](#ajaminen-windows)
 - [Tietokanta ja migraatiot](#tietokanta-ja-migraatiot)
 - [Lokitus](#lokitus)
-- [Laatu: koodi, testit, tyyli](#laatu-koodi-testit-ja-tyyli)
-- [Projektinhallinta](#projektinhallinta)
-- [Käyttöohje (pika)](#käyttöohje-pika)
+- [Laatu: koodi, testit ja tyyli](#laatu-koodi-testit-ja-tyyli)
+- [Projektinhallinta ja dokumentaatio](#projektinhallinta-ja-dokumentaatio)
+- [Julkaisu (valinnainen)](#julkaisu)
 - [Tunnetut rajoitteet ja jatkokehitys](#tunnetut-rajoitteet-ja-jatkokehitys)
 - [Lisenssi](#lisenssi)
 
 ## Arkkitehtuuri
 
-**Ratkaisun kerrokset**
-- **Tapahtumahubi.Domain** – entiteetit ja validointi (`Event`, `Participant`).
-- **Tapahtumahubi.Infrastructure** – EF Core/SQLite: `AppDbContext`, migraatiot (Migrations/), seed (Seed/), kyselyt (Queries/). Käyttää `IDbContextFactory<AppDbContext>`.
-- **Tapahtumahubi.App** – .NET MAUI UI (MVVM): *ViewModels* ja *XAML*-näkymät. DI-rekisteröinti `MauiProgram.cs`:ssä. Serilog lokitukseen.
-- **Tapahtumahubi.Tests** – xUnit: domain-validoinnit, kyselyt, palvelut, perus-VM-polut.
+**Kerrokset**
+- **Tapahtumahubi.Domain** – entiteetit ja validoinnit (`Event`, `Participant`).
+- **Tapahtumahubi.Infrastructure** – EF Core + SQLite: `AppDbContext`, migraatiot (`Migrations/`), siemendata, kyselyt. Käyttää `IDbContextFactory<AppDbContext>`.
+- **Tapahtumahubi.App** – .NET MAUI UI (MVVM): ViewModelit ja XAML-näkymät. DI-rekisteröinti `MauiProgram.cs`:ssä. Serilog lokitukseen.
+- **Tapahtumahubi.Tests** – xUnit-testit domainille ja peruspoluille.
 
-**Navigaatio/UX**
+**UX**
 - Välilehdet: **Tapahtumat** ja **Kalenteri**.
 - Uusi/Muokkaa: otsikko, sijainti, päivä, aika, kuvaus, maks. osallistujat.
-- Osallistujat: sähköposti uniikki per tapahtuma; kapasiteettiraja.
+- Osallistujat: sähköposti uniikki per tapahtuma; kapasiteettiraja huomioidaan.
 
 ## Vaatimukset ja asennus
 
-- Windows 10 2004 / 11 (19041+)
-- .NET 8 SDK (+ Desktop Runtime)
-- (Suositus) EF Core Tools: `dotnet tool install --global dotnet-ef`
+- Windows 10 2004 / 11 (build 19041+)
+- .NET 8 SDK (ja Desktop Runtime)
+- (Suositus) EF Core Tools:
+  ```bash
+  dotnet tool install --global dotnet-ef
 
-**Kloonaus**
-```bash
+
+# Kloonaus ja palautus
 git clone https://github.com/AleksanteriLohja/Tapahtumahubi.git
 cd Tapahtumahubi
 dotnet restore
-```
 
-Ajaminen (Windows)
-
+# Ajaminen (Windows)
 dotnet build src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
-dotnet run  --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
+dotnet run --project src/Tapahtumahubi.App/Tapahtumahubi.App.csproj -f net8.0-windows10.0.19041.0
 
-Ensimmäisellä ajolla sovellus luo paikallisen tietokannan:
+Ensimmäinen ajo luo paikallisen SQLite-tietokannan:
 %LocalAppData%\Tapahtumahubi.App\app.db
 
-Tietokanta ja migraatiot
-
+# Tietokanta ja migraatiot
 Migraatiot: src/Tapahtumahubi.Infrastructure/Migrations.
 # Aja viimeisin migraatio
-dotnet ef database update --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
+dotnet ef database update \
+  --project src/Tapahtumahubi.Infrastructure \
+  --startup-project src/Tapahtumahubi.App
 
 # Luo uusi migraatio
-dotnet ef migrations add <Nimi> --project src/Tapahtumahubi.Infrastructure --startup-project src/Tapahtumahubi.App
+dotnet ef migrations add <Nimi> \
+  --project src/Tapahtumahubi.Infrastructure \
+  --startup-project src/Tapahtumahubi.App
 
-App käyttää IDbContextFactory<AppDbContext> ja sijoittaa tietokannan LocalApplicationData-kansioon – hyvä malli UI-sovelluksille.
+Sovellus käyttää IDbContextFactory<AppDbContext> ja tallentaa tietokannan LocalApplicationData-kansioon.
 
-Lokitus
-
+# Lokitus
 Serilog kirjoittaa lokit:
 %LocalAppData%\Tapahtumahubi.App\logs\app-<päivä>.log
 
 Laatu: koodi, testit ja tyyli
+# Käännös
+dotnet build -c Release
 
-Analyysi: solution kääntyy puhtaasti; varoitukset nostettu virheiksi (katso Directory.Build.props).
-
-Testit
+# Testit + kattavuus
 dotnet test --settings coverage.runsettings
 
-Kattavuusraportti talteen (Coverlet collector).
+Kattavuus: Coverlet (XPlat Code Coverage) + ReportGenerator (CI tuottaa HTML-raportin).
 
-Tyyli: .editorconfig.
+Varoitukset on nostettu virheiksi Directory.Build.props -tiedostossa.
 
-Projektinhallinta
+Koodityyli: .editorconfig.
 
-Projektisuunnitelma: docs/projektisuunnitelma.md (roolit, rotaatio, sprintit, riskit, DoD).
+# Projektinhallinta ja dokumentaatio
 
-AI-käyttö: docs/AI-käyttö.md (missä, miksi, miten).
+Projektikortti: docs/project-card.md
 
-VS Code: .vscode/tasks.json & launch.json (F5 ajaa suoraan).
+Vaatimukset: docs/vaatimukset.md
 
-Release:
-dotnet publish src/Tapahtumahubi.App -c Release -f net8.0-windows10.0.19041.0 -r win10-x64 --self-contained false -o publish/win
+Arkkitehtuuri: docs/arkkitehtuuri.md
 
-Käyttöohje (pika)
+Testaus: docs/testaus.md
 
-Luo uusi tapahtuma Tapahtumat-välilehdeltä – täytä kentät ja Tallenna.
+Käyttöohje: docs/kayttoohje.md
 
-Muokkaa/Poista tapahtumakortilta.
+Git & release -käytännöt: docs/git_ja_release.md
 
-Osallistujat: lisää nimi + sähköposti (uniikki per tapahtuma).
+Riskit ja rajaukset: docs/riskit_ja_rajaus.md
 
-Kalenteri: selaa päivämääriä, Tänään palaa tähän päivään.
+Projektisuunnitelma (roolit, sprintit, DoD): docs/projektisuunnitelma.md
 
-Tunnetut rajoitteet ja jatkokehitys
+AI-käyttö: docs/AI-kaytto.md
+
+# Julkaisu
+Unpackaged (kansioon)
+
+PowerShell (yksi rivi):
+dotnet publish src/Tapahtumahubi.App -c Release -f net8.0-windows10.0.19041.0 -r win10-x64 -o publish/win
+
+PowerShell (monirivinen, käyttäen ^):
+dotnet publish src/Tapahtumahubi.App ^
+  -c Release ^
+  -f net8.0-windows10.0.19041.0 ^
+  -r win10-x64 ^
+  -o publish/win
+
+  HUOM: Androidin JDK-virheilmoitukset eivät liity tähän, kun rakennat vain Windows-TFM:lle.
+
+MSIX (pipeline-esimerkki ja ohjeet: docs/git_ja_release.md)
+
+# Tunnetut rajoitteet ja jatkokehitys
 
 Projekti optimoitu Windowsille; muut alustat skelettona.
 
-Jatkossa: haku/suodatus, CSV/ICS-vienti, VM-virhepolkujen testit.
+Jatkokehitys: suodattimet/haku, CSV/ICS-vienti, osallistujahallinnan laajennus, VM-virhepolkujen testit.
 
-Lisenssi
+# Lisenssi
+
 MIT

@@ -5,12 +5,21 @@ charset = utf-8
 end_of_line = crlf
 indent_style = space
 indent_size = 4
+trim_trailing_whitespace = true
 insert_final_newline = true
-dotnet_style_qualification_for_field = false:suggestion
-dotnet_style_qualification_for_property = false:suggestion
-dotnet_style_qualification_for_method = false:suggestion
+
+# Using-järjestys ja var-säännöt
 dotnet_sort_system_directives_first = true:suggestion
-csharp_new_line_before_open_brace = all
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_var_elsewhere = true:suggestion
+
+# Sijoitetut aaltosulut ja perusmuotoilut
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = true:suggestion
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# Nimen ensin-qualification (puhdas koodi, ei turhaa this.)
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
